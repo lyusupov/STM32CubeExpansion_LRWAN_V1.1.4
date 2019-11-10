@@ -60,6 +60,7 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/timeServer.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/delay.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/utilities.c \
+	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/queue.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Core/lora-test.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Crypto/aes.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Crypto/cmac.c \
@@ -103,6 +104,7 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/main.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/lora.c
 
+#	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/trace.c \
 #	 $(BASE)/Middlewares/Third_Party/Lora/Core/lora.c \
 
 TO_COMPILE = $(foreach d, $(SRC_FILES), $d)
