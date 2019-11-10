@@ -4,7 +4,7 @@
 #include "stm32l072xx.h"
 #include <stdio.h>
 #include "stm32l0xx_hal.h"
-#include "b-l072z-lrwan1.h"
+#include "stm32l0xx_nucleo.h"
 #include <stdint.h>
 #include "gps.h"
 

@@ -2,7 +2,7 @@
  * @file    command.c
  * @author  MCD Application Team
  * @version V1.1.4
- * @date    08-January-2018
+ * @date    10-July-2018
  * @brief   main command driver dedicated to command AT
  ******************************************************************************
  * @attention
@@ -49,6 +49,7 @@
 #include "at.h"
 #include "hw.h"
 #include "command.h"
+#include "lora.h"
 
 /* comment the following to have help message */
 /* #define NO_HELP */
@@ -71,7 +72,7 @@ struct ATCommand_s {
 
 /* Private define ------------------------------------------------------------*/
 #define CMD_SIZE 128
-
+extern uint8_t parse_flag;
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
@@ -105,16 +106,27 @@ static const struct ATCommand_s ATCommand[] =
     .set = at_return_error,
     .run = at_reset,
   },
+	
+	{
+	  .string = AT_FDR,
+    .size_string = sizeof(AT_FDR) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_FDR ": Reset Parameters to Factory Default, Keys Reserve\r\n",
+#endif
+    .get = at_return_error,
+    .set = at_return_error,
+    .run = at_FDR,
+  },
 
 #ifndef NO_KEY_ADDR_EUI
   {
     .string = AT_DEUI,
     .size_string = sizeof(AT_DEUI) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_DEUI ": Get the Device EUI\r\n",
+    .help_string = "AT"AT_DEUI ": Get or Set the Device EUI\r\n",
 #endif
     .get = at_DevEUI_get,
-    .set = at_return_error,
+    .set = at_DevEUI_set,
     .run = at_return_error,
   },
 #endif
@@ -124,7 +136,7 @@ static const struct ATCommand_s ATCommand[] =
     .string = AT_DADDR,
     .size_string = sizeof(AT_DADDR) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_DADDR ": Get or Set the Device address\r\n",
+    .help_string = "AT"AT_DADDR ": Get or Set the Device Address\r\n",
 #endif
     .get = at_DevAddr_get,
     .set = at_DevAddr_set,
@@ -199,7 +211,7 @@ static const struct ATCommand_s ATCommand[] =
     .string = AT_TXP,
     .size_string = sizeof(AT_TXP) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_TXP ": Get or Set the Transmit Power (0-5)\r\n",
+    .help_string = "AT"AT_TXP ": Get or Set the Transmit Power (0-5, MAX:0, MIN:5, according to LoRaWAN Spec)\r\n",
 #endif
     .get = at_TransmitPower_get,
     .set = at_TransmitPower_set,
@@ -410,7 +422,7 @@ static const struct ATCommand_s ATCommand[] =
     .string = AT_RECVB,
     .size_string = sizeof(AT_RECVB) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_RECVB ": print last received data in binary format (with hexadecimal values)\r\n",
+    .help_string = "AT"AT_RECVB ": Print last received data in binary format (with hexadecimal values)\r\n",
 #endif
     .get = at_ReceiveBinary,
     .set = at_return_error,
@@ -421,7 +433,7 @@ static const struct ATCommand_s ATCommand[] =
     .string = AT_RECV,
     .size_string = sizeof(AT_RECV) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_RECV ": print last received data in raw format\r\n",
+    .help_string = "AT"AT_RECV ": Print last received data in raw format\r\n",
 #endif
     .get = at_Receive,
     .set = at_return_error,
@@ -432,7 +444,7 @@ static const struct ATCommand_s ATCommand[] =
     .string = AT_VER,
     .size_string = sizeof(AT_VER) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_VER ": Get the version of the AT_Slave FW\r\n",
+    .help_string = "AT"AT_VER ": Get current image version and Frequency Band\r\n",
 #endif
     .get = at_version_get,
     .set = at_return_error,
@@ -482,89 +494,139 @@ static const struct ATCommand_s ATCommand[] =
     .set = at_return_error,
     .run = at_return_error,
   },
-  
-  {
-    .string = AT_BAT,
-    .size_string = sizeof(AT_BAT) - 1,
+	
+	{
+    .string = AT_TDC,
+    .size_string = sizeof(AT_TDC) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_BAT ": Get the battery level\r\n",
+    .help_string = "AT"AT_TDC ": Get or set the application data transmission interval in ms\r\n",
 #endif
-    .get = at_bat_get,
-    .set = at_return_error,
+    .get = at_TDC_get,
+    .set = at_TDC_set,
     .run = at_return_error,
   },
-    {
-    .string = AT_TRSSI,
-    .size_string = sizeof(AT_TRSSI) - 1,
+
+//	{
+//    .string = AT_DCE,
+//    .size_string = sizeof(AT_DCE) - 1,
+//#ifndef NO_HELP
+//    .help_string = "AT"AT_DCE ": Get or set the application data transmission duty cycle in ms\r\n",
+//#endif
+//    .get = at_DCE_get,
+//    .set = at_DCE_set,
+//    .run = at_return_error,
+//  },	
+//	
+	{
+    .string = AT_GPST,
+    .size_string = sizeof(AT_GPST) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_TRSSI ": Starts RF RSSI tone test\r\n",
+    .help_string = "AT"AT_GPST ": Get or set the GPS positioning time in s\r\n",
 #endif
-    .get = at_return_error,
-    .set = at_return_error,
-    .run = at_test_rxTone,
-  },
-  
-  {
-    .string = AT_TTONE,
-    .size_string = sizeof(AT_TTONE) - 1,
-#ifndef NO_HELP
-    .help_string = "AT"AT_TTONE ": Starts RF Tone test\r\n",
-#endif
-    .get = at_return_error,
-    .set = at_return_error,
-    .run = at_test_txTone,
-  }, 
-  {
-    .string = AT_TTLRA,
-    .size_string = sizeof(AT_TTLRA) - 1,
-#ifndef NO_HELP
-    .help_string = "AT"AT_TTLRA ": Starts RF Tx LORA test\r\n",
-#endif
-    .get = at_return_error,
-    .set = at_return_error,
-    .run = at_test_txlora,
-  }, 
-  {
-    .string = AT_TRLRA,
-    .size_string = sizeof(AT_TRLRA) - 1,
-#ifndef NO_HELP
-    .help_string = "AT"AT_TRLRA ": Starts RF Rx LORA test\r\n",
-#endif
-    .get = at_return_error,
-    .set = at_return_error,
-    .run = at_test_rxlora,
-  }, 
-  {
-    .string = AT_TCONF,
-    .size_string = sizeof(AT_TCONF) - 1,
-#ifndef NO_HELP
-    .help_string = "AT"AT_TCONF ": Config LORA RF test\r\n",
-#endif
-    .get = at_test_get_lora_config,
-    .set = at_test_set_lora_config,
+    .get = at_gpst_get,
+    .set = at_gpst_set,
     .run = at_return_error,
-  }, 
-  {
-    .string = AT_TOFF,
-    .size_string = sizeof(AT_TOFF) - 1,
+  },	
+
+	{
+    .string = AT_ACE,
+    .size_string = sizeof(AT_ACE) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_TOFF ": Stops on-going RF test\r\n",
+    .help_string = "AT"AT_ACE ": Get or set the application data transmission duty cycle in ms\r\n",
 #endif
-    .get = at_return_error,
-    .set = at_return_error,
-    .run = at_test_stop,
-  }, 
-  
-  {
-    .string = AT_CERTIF,
-    .size_string = sizeof(AT_CERTIF) - 1,
+    .get = at_ACE_get,
+    .set = at_ACE_set,
+    .run = at_return_error,
+  },	
+	
+	{
+    .string = AT_PORT,
+    .size_string = sizeof(AT_PORT) - 1,
 #ifndef NO_HELP
-    .help_string = "AT"AT_CERTIF ": Set the module in LoraWan Certification Mode\r\n",
+    .help_string = "AT"AT_PORT ": Get or set the application port\r\n",
 #endif
-    .get = at_return_error,
-    .set = at_return_error,
-    .run = at_Certif,
+    .get = at_application_port_get,
+    .set = at_application_port_set,
+    .run = at_return_error,
   },
+ 
+	{
+	  .string = AT_CHS,
+    .size_string = sizeof(AT_CHS) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_CHS ": Get or Set Frequency (Unit: Hz) for Single Channel Mode\r\n",
+#endif
+    .get = at_CHS_get,
+    .set = at_CHS_set,
+    .run = at_return_error,
+	},
+	
+	{
+	  .string = AT_SGM,
+    .size_string = sizeof(AT_SGM) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_SGM ": Get or set the Disable Motion Sensor (1), Enable Motion Sensor(0)\r\n",
+#endif
+    .get = at_sgm_get,
+    .set = at_sgm_set,
+    .run = at_return_error,
+	},
+	
+	#if defined( REGION_US915 ) || defined( REGION_US915_HYBRID ) || defined ( REGION_AU915 ) || defined ( REGION_CN470 )
+	{
+	  .string = AT_CHE,
+    .size_string = sizeof(AT_CHE) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_CHE ": Get or Set eight channels mode,Only for US915,AU915,CN470\r\n",
+#endif
+    .get = at_CHE_get,
+    .set = at_CHE_set,
+    .run = at_return_error,
+	},
+	#endif
+  	{
+	  .string = AT_STD,
+    .size_string = sizeof(AT_STD) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_STD ": Reset Parameters to Factory Default, Keys Reserve\r\n",
+#endif
+    .get = at_return_error,
+    .set = at_return_error,
+    .run = at_STD,
+  },
+
+	{
+	  .string = AT_CFG,
+    .size_string = sizeof(AT_CFG) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_CFG ": Print all configurations\r\n",
+#endif
+    .get = at_return_error,
+    .set = at_return_error,
+    .run = at_return_error,
+	},
+
+  {
+	  .string = AT_RX1WTO,
+    .size_string = sizeof(AT_RX1WTO) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_RX1WTO ": Get or Set the number of symbols to detect and timeout from RXwindow1(0 to 255)\r\n",
+#endif
+    .get = at_symbtimeout1LSB_get,
+    .set = at_symbtimeout1LSB_set,
+    .run = at_return_error,
+	},
+	
+	{
+	  .string = AT_RX2WTO,
+    .size_string = sizeof(AT_RX2WTO) - 1,
+#ifndef NO_HELP
+    .help_string = "AT"AT_RX2WTO ": Get or Set the number of symbols to detect and timeout from RXwindow2(0 to 255)\r\n",
+#endif
+    .get = at_symbtimeout2LSB_get,
+    .set = at_symbtimeout2LSB_set,
+    .run = at_return_error,
+	 },	
 };
 
 
@@ -585,45 +647,50 @@ static void com_error(ATEerror_t error_type);
 static void parse_cmd(const char *cmd);
 
 /* Exported functions ---------------------------------------------------------*/
+static void CMD_GetChar( uint8_t* rxChar);
+static char command[CMD_SIZE];
+static unsigned i = 0;  
+static FlagStatus IsCharReceived=RESET;  
 
 void CMD_Init(void)
 {
-  vcom_Init();
-  vcom_ReceiveInit();
+  vcom_ReceiveInit( CMD_GetChar );
+  IsCharReceived=RESET;
+}
+
+static void CMD_GetChar( uint8_t* rxChar)
+{
+  command[i] = *rxChar;
+  IsCharReceived=SET;
 }
 
 void CMD_Process(void)
 {
-  static char command[CMD_SIZE];
-  static unsigned i = 0;
-
-  /* Process all commands */
-  while (IsNewCharReceived() == SET)
+/* Process all commands */
+  if (IsCharReceived==SET)
   {
-    command[i] = GetNewChar();
-
+    //ENTER_CRITICAL
+    IsCharReceived=RESET;
+    //EXIT CRITICAL
 #if 0 /* echo On    */
-    PRINTF("%c", command[i]);
+  PRINTF("%c", command[i]);
 #endif
 
     if (command[i] == AT_ERROR_RX_CHAR)
     {
       i = 0;
       com_error(AT_RX_ERROR);
-      break;
     }
-    else
-    if ((command[i] == '\r') || (command[i] == '\n'))
+    else if ((command[i] == '\r') || (command[i] == '\n'))
     {
       if (i != 0)
       {
         command[i] = '\0';
+				i = 0;				
         parse_cmd(command);
-        i = 0;
       }
     }
-    else
-    if (i == (CMD_SIZE - 1))
+    else if (i == (CMD_SIZE - 1))
     {
       i = 0;
       com_error(AT_TEST_PARAM_OVERFLOW);
@@ -667,13 +734,13 @@ static void parse_cmd(const char *cmd)
   {
 #ifdef NO_HELP
 #else
-    AT_PRINTF("AT+<CMD>?        : Help on <CMD>\r\n"
+    PPRINTF("AT+<CMD>?        : Help on <CMD>\r\n"
               "AT+<CMD>         : Run <CMD>\r\n"
               "AT+<CMD>=<value> : Set the value\r\n"
               "AT+<CMD>=?       : Get the value\r\n");
     for (i = 0; i < (sizeof(ATCommand) / sizeof(struct ATCommand_s)); i++)
     {
-      AT_PRINTF(ATCommand[i].help_string);
+      PPRINTF(ATCommand[i].help_string);
     }
 #endif
   }
@@ -686,6 +753,21 @@ static void parse_cmd(const char *cmd)
     {
       if (strncmp(cmd, ATCommand[i].string, ATCommand[i].size_string) == 0)
       {
+				if(strcmp(cmd,AT_CFG) == 0)
+			  {
+				  for (int j = 0; j< (sizeof(ATCommand) / sizeof(struct ATCommand_s)); j++)
+          {
+				    if((ATCommand[j].get)!=at_return_error)
+				    {
+              PPRINTF("AT%s=",ATCommand[j].string);
+			        ATCommand[j].get(( char *)cmd);						 
+				    }
+			    }
+			 status = AT_OK;
+			 break;
+			}
+      else
+			{
         Current_ATCommand = &(ATCommand[i]);
         /* point to the string after the command to parse it */
         cmd += Current_ATCommand->size_string;
@@ -704,6 +786,8 @@ static void parse_cmd(const char *cmd)
             else
             {
               status = Current_ATCommand->set(cmd + 1);
+							Store_Config();
+							Store_key();
             }
             break;
           case '?':
@@ -720,10 +804,12 @@ static void parse_cmd(const char *cmd)
         /* we end the loop as the command was found */
         break;
       }
+		 }
     }
   }
 
   com_error(status);
+
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

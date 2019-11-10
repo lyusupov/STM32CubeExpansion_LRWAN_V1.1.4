@@ -7,7 +7,7 @@
 #include <stdio.h>  
 #include "stm32l072xx.h"
 #include "stm32l0xx_hal.h"
-#include "b-l072z-lrwan1.h"
+#include "stm32l0xx_nucleo.h"
 
 #include "bsp_usart2.h"
 

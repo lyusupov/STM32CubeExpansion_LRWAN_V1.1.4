@@ -1,7 +1,8 @@
 BASE=../../../../../..
 ARM_TOOLCHAIN=/opt/gcc-arm-none-eabi/bin
 GCC_PREFIX=$(ARM_TOOLCHAIN)/arm-none-eabi-
-BOARD=B_L072Z_LRWAN1
+#BOARD=B_L072Z_LRWAN1
+BOARD=STM32L0XX_NUCLEO
 OBJ_DIR=./_build
 PROJ_NAME=AT_Slave
 REGION=REGION_EU868
@@ -22,7 +23,7 @@ INC = $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/inc \
 	$(BASE)/Drivers/STM32L0xx_HAL_Driver/Inc \
 	$(BASE)/Drivers/CMSIS/Include \
 	$(BASE)/Drivers/CMSIS/Device/ST/STM32L0xx/Include \
-	$(BASE)/Drivers/BSP/B-L072Z-LRWAN1 \
+	$(BASE)/Drivers/BSP/STM32L0xx_Nucleo \
 	$(BASE)/Drivers/BSP/Components/sx1276 \
 	$(BASE)/Drivers/BSP/Components/flash_eraseprogram \
 	$(BASE)/Drivers/BSP/Components/filter \
@@ -51,6 +52,8 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_tim_ex.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr_ex.c \
+	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash.c \
+	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ex.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_spi.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_lpuart.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_dma.c \
@@ -61,6 +64,7 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/delay.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/utilities.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/queue.c \
+	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/trace.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Core/lora-test.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Crypto/aes.c \
 	 $(BASE)/Middlewares/Third_Party/Lora/Crypto/cmac.c \
@@ -83,8 +87,9 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/hw_spi.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/hw_rtc.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/hw_gpio.c \
-	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/mlm32l0xx_it.c \
-	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/mlm32l0xx_hw.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/stm32l0xx_it.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/stm32l0xx_hw.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/stm32l0xx_hal_msp.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/vcom.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/at.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/command.c \
@@ -99,12 +104,16 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Drivers/BSP/Components/IIC/IIC.c \
 	 $(BASE)/Drivers/BSP/Components/mpu9250/mpu9250.c \
 	 $(BASE)/Drivers/BSP/Components/usart/bsp_usart2.c \
-	 $(BASE)/Drivers/BSP/MLM32L07X01/mlm32l07x01.c \
-	 $(BASE)/Drivers/BSP/B-L072Z-LRWAN1/b-l072z-lrwan1.c \
+	 $(BASE)/Drivers/BSP/STM32L0xx_Nucleo/stm32l0xx_nucleo.c \
+	 $(BASE)/Drivers/BSP/sx1276mb1las/sx1276mb1las.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/main.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/lora.c
 
-#	 $(BASE)/Middlewares/Third_Party/Lora/Utilities/trace.c \
+#	 $(BASE)/Drivers/BSP/B-L072Z-LRWAN1/b-l072z-lrwan1.c \
+#	 $(BASE)/Drivers/BSP/MLM32L07X01/mlm32l07x01.c \
+#	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/mlm32l0xx_it.c \
+#	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/mlm32l0xx_hw.c \
+#	 $(BASE)/Drivers/BSP/B-L072Z-LRWAN1 \
 #	 $(BASE)/Middlewares/Third_Party/Lora/Core/lora.c \
 
 TO_COMPILE = $(foreach d, $(SRC_FILES), $d)

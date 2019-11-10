@@ -76,10 +76,11 @@ typedef enum eATEerror
 /* External variables --------------------------------------------------------*/
 /* Exported macros -----------------------------------------------------------*/
 /* AT printf */
-#define AT_PRINTF(...)     vcom_Send(__VA_ARGS__)
+#define AT_PRINTF     PPRINTF
 
 /* AT Command strings. Commands start with AT */
 #define AT_RESET      "Z"
+#define AT_FDR        "+FDR"
 #define AT_DEUI       "+DEUI"
 #define AT_DADDR      "+DADDR"
 #define AT_APPKEY     "+APPKEY"
@@ -113,15 +114,19 @@ typedef enum eATEerror
 #define AT_CFS        "+CFS"
 #define AT_SNR        "+SNR"
 #define AT_RSSI       "+RSSI"
-#define AT_BAT        "+BAT"
-#define AT_TRSSI      "+TRSSI"
-#define AT_TTONE      "+TTONE"
-#define AT_TTLRA      "+TTLRA"
-#define AT_TRLRA      "+TRLRA"
-#define AT_TCONF      "+TCONF"
-#define AT_TOFF       "+TOFF"
-#define AT_CERTIF     "+CERTIF"
-
+#define AT_TDC        "+TDC"
+#define AT_PORT       "+PORT"
+#define AT_DISAT      "+DISAT"
+#define AT_CHS        "+CHS"
+#define AT_CHE        "+CHE"
+#define AT_SGM        "+SGM"
+//#define AT_DCE        "+DCE"
+#define AT_GPST        "+GPST"
+#define AT_ACE        "+ACE"
+#define AT_STD        "+STD"
+#define AT_CFG        "+CFG"
+#define AT_RX1WTO     "+RX1WTO"
+#define AT_RX2WTO     "+RX2WTO"
 /* Exported functions ------------------------------------------------------- */
 
 /**
@@ -155,11 +160,25 @@ ATEerror_t at_return_error(const char *param);
 ATEerror_t at_reset(const char *param);
 
 /**
+ * @brief  Flash erase
+ * @param  Param string of the AT command - unused
+ * @retval AT_OK
+ */
+ATEerror_t at_FDR(const char *param);
+
+/**
  * @brief  Print Device EUI
  * @param  Param string of the AT command - unused
  * @retval AT_OK
  */
 ATEerror_t at_DevEUI_get(const char *param);
+
+/**
+ * @brief  Set Device EUI
+ * @param  Param string of the AT command
+ * @retval AT_OK if OK, or an appropriate AT_xxx error code
+ */
+ATEerror_t at_DevEUI_set(const char *param);
 
 /**
  * @brief  Print Application EUI
@@ -541,48 +560,6 @@ ATEerror_t at_snr_get(const char *param);
 ATEerror_t at_rssi_get(const char *param);
 
 /**
- * @brief  Get the battery level
- * @param  String parameter
- * @retval AT_OK
- */
-ATEerror_t at_bat_get(const char *param);
-
-/**
- * @brief  Sart Tx test
- * @param  String parameter
- * @retval AT_OK
- */
-ATEerror_t at_test_txTone(const char *param);
-
-/**
- * @brief  Sart Rx tone
- * @param  String parameter
- * @retval AT_OK
- */
-ATEerror_t at_test_rxTone(const char *param);
-
-/**
- * @brief  stop Rx or Tx test
- * @param  String parameter
- * @retval AT_OK
- */
-ATEerror_t at_test_stop(const char *param);
-
-/**
- * @brief  Start Tx LoRa test
- * @param  String parameter
- * @retval AT_OK
- */
-ATEerror_t at_test_txlora(const char *param);
-
-/**
- * @brief  Start Rx LoRa test
- * @param  String parameter
- * @retval AT_OK
- */
-ATEerror_t at_test_rxlora(const char *param);
-
-/**
  * @brief  Set Rx or Tx test config
  * @param  String parameter
  * @retval AT_OK
@@ -596,13 +573,97 @@ ATEerror_t at_test_set_lora_config(const char *param);
  */
 ATEerror_t at_test_get_lora_config(const char *param);
 
+///**
+// * @brief  set the Modem in Certif Mode
+// * @param  String parameter
+// * @retval AT_OK
+// */
+//ATEerror_t at_Certif( const char *param );
+
 /**
- * @brief  set the Modem in Certif Mode
+ * @brief  
  * @param  String parameter
  * @retval AT_OK
  */
-ATEerror_t at_Certif( const char *param );
-  
+ATEerror_t at_TDC_get(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_TDC_set(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_DCE_get(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_DCE_set(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_ACE_get(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_ACE_set(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_application_port_get(const char *param);
+
+/**
+ * @brief  
+ * @param  String parameter
+ * @retval AT_OK
+ */
+ATEerror_t at_application_port_set(const char *param);
+
+ATEerror_t at_CHS_get(const char *param);
+
+ATEerror_t at_CHS_set(const char *param);
+
+ATEerror_t at_CHE_get(const char *param);
+
+ATEerror_t at_CHE_set(const char *param);
+
+ATEerror_t at_sgm_set(const char *param);
+
+ATEerror_t at_sgm_get(const char *param);
+
+ATEerror_t at_gpst_set(const char *param);
+
+ATEerror_t at_gpst_get(const char *param);
+
+ATEerror_t at_STD(const char *param);
+
+ATEerror_t at_symbtimeout1LSB_get(const char *param);
+
+ATEerror_t at_symbtimeout1LSB_set(const char *param);
+
+ATEerror_t at_symbtimeout2LSB_get(const char *param);
+
+ATEerror_t at_symbtimeout2LSB_set(const char *param);
+
+void s_tdc();
+
 #ifdef __cplusplus
 }
 #endif

@@ -50,81 +50,115 @@
 #include "hw.h"
 #include "timeServer.h"
 #include "bsp.h"
-#if defined(LRWAN_NS1)
-#include "lrwan_ns1_humidity.h"
-#include "lrwan_ns1_pressure.h"
-#include "lrwan_ns1_temperature.h"
-#else  /* not LRWAN_NS1 */
-#if defined(SENSOR_ENABLED)
-#if defined (X_NUCLEO_IKS01A1)
-#warning "Do not forget to select X_NUCLEO_IKS01A1 files group instead of X_NUCLEO_IKS01A2"
-#include "x_nucleo_iks01a1_humidity.h"
-#include "x_nucleo_iks01a1_pressure.h"
-#include "x_nucleo_iks01a1_temperature.h"
-#else  /* not X_NUCLEO_IKS01A1 */
-#include "x_nucleo_iks01a2_humidity.h"
-#include "x_nucleo_iks01a2_pressure.h"
-#include "x_nucleo_iks01a2_temperature.h"
-#endif  /* X_NUCLEO_IKS01A1 */
-#endif  /* SENSOR_ENABLED */
-#endif  /* LRWAN_NS1 */
-
-
+#include "lora.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define STSOP_LATTITUDE ((float) 43.618622 )
-#define STSOP_LONGITUDE ((float) 7.051415  )
-#define MAX_GPS_POS ((int32_t) 8388607  ) // 2^23 - 1
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Exported functions ---------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-#if defined(SENSOR_ENABLED) || defined (LRWAN_NS1)
-void *HUMIDITY_handle = NULL;
-void *TEMPERATURE_handle = NULL;
-void *PRESSURE_handle = NULL;
-#endif
+static __IO uint16_t AD_code1=0;
+static __IO uint16_t AD_code2=0;
+uint16_t AD_code3=0;
 
+extern uint16_t batteryLevel_mV;
 void BSP_sensor_Read( sensor_t *sensor_data)
 {
-  /* USER CODE BEGIN 5 */
-  float HUMIDITY_Value = 0;
-  float TEMPERATURE_Value = 0;
-  float PRESSURE_Value = 0;
+  HAL_GPIO_WritePin(OIL_CONTROL_PORT,OIL_CONTROL_PIN,GPIO_PIN_RESET);
+	AD_code1=HW_AdcReadChannel( ADC_Channel_Oil );
+	HAL_GPIO_WritePin(OIL_CONTROL_PORT,OIL_CONTROL_PIN,GPIO_PIN_SET);
 
-#if defined(SENSOR_ENABLED) || defined (LRWAN_NS1)
-  BSP_HUMIDITY_Get_Hum(HUMIDITY_handle, &HUMIDITY_Value);
-  BSP_TEMPERATURE_Get_Temp(TEMPERATURE_handle, &TEMPERATURE_Value);
-  BSP_PRESSURE_Get_Press(PRESSURE_handle, &PRESSURE_Value);
-#endif  
-  sensor_data->humidity    = HUMIDITY_Value;
-  sensor_data->temperature = TEMPERATURE_Value;
-  sensor_data->pressure    = PRESSURE_Value;
-  
-  sensor_data->latitude  = (int32_t) ((STSOP_LATTITUDE  * MAX_GPS_POS) /90);
-  sensor_data->longitude = (int32_t) ((STSOP_LONGITUDE  * MAX_GPS_POS )/180);
-  /* USER CODE END 5 */
+	HW_GetBatteryLevel( );
+//	sensor_data->oil=AD_code1*batteryLevel_mV/4095;
+  AD_code2 = AD_code1*batteryLevel_mV/4095;
+	AD_code3 = (AD_code2*57/47);
+//	PRINTF("\n\rAD_code3=%d  ", AD_code3);
+//	if(AD_code2 <= 3050)
+//	{
+//		gps_state_no();
+//		lora_state_Led();
+//	}
+  sensor_data->oil = AD_code2*(47 + 10)/47;
 }
 
 void  BSP_sensor_Init( void  )
 {
-  /* USER CODE BEGIN 6 */
+	  GPIO_InitTypeDef GPIO_InitStructure; 
+	  BSP_oil_float_Init();
+  	LED_CLK_ENABLE();  
+	
+	  GPIO_InitStructure.Pin =   LED1_PIN | LED0_PIN | LED3_PIN  ;
+    GPIO_InitStructure.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStructure.Pull  = GPIO_PULLUP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    HAL_GPIO_Init(LED3_PORT , &GPIO_InitStructure);  
+	
+}
 
-#if defined(SENSOR_ENABLED) || defined (LRWAN_NS1)
-  /* Initialize sensors */
-  BSP_HUMIDITY_Init( HTS221_H_0, &HUMIDITY_handle );
-  BSP_TEMPERATURE_Init( HTS221_T_0, &TEMPERATURE_handle );
-  BSP_PRESSURE_Init( PRESSURE_SENSORS_AUTO, &PRESSURE_handle );
-  
-  /* Enable sensors */
-  BSP_HUMIDITY_Sensor_Enable( HUMIDITY_handle );
-  BSP_TEMPERATURE_Sensor_Enable( TEMPERATURE_handle );
-  BSP_PRESSURE_Sensor_Enable( PRESSURE_handle );
-#endif
-    /* USER CODE END 6 */
+void  BSP_sensor_DeInit( void  )
+{
+	  GPIO_InitTypeDef GPIO_InitStructure; 
+	
+  	__GPIOA_CLK_ENABLE();
+
+    GPIO_InitStructure.Pin =  LED1_PIN | LED0_PIN | LED3_PIN  ;
+    GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStructure.Pull = GPIO_NOPULL;
+//    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);     
+	
+}
+void  BSP_powerLED_Init( void  )
+{
+	  GPIO_InitTypeDef GPIO_InitStructure; 
+
+  	LED_CLK_ENABLE();
+	
+	  GPIO_InitStructure.Pin =   LED1_PIN | LED0_PIN | LED3_PIN  ;
+    GPIO_InitStructure.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStructure.Pull  = GPIO_PULLUP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    HAL_GPIO_Init(LED3_PORT , &GPIO_InitStructure);  
+	
+}
+
+void  BSP_powerLED_DeInit( void  )
+{
+	   GPIO_InitTypeDef GPIO_InitStructure; 
+	
+	  __GPIOA_CLK_ENABLE();
+	
+	  GPIO_InitStructure.Pin =  GPIO_PIN_11 ;
+    GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStructure.Pull = GPIO_NOPULL;
+//    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);  
+	  
+	
+}
+
+void powerLED(void)
+{
+	BSP_powerLED_Init();
+	LED0_1 ;
+	HAL_Delay(1000);
+  LED0_0;
+}
+void  BSP_oil_float_Init( void )
+{
+	GPIO_InitTypeDef GPIO_InitStruct={0};
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = OIL_CONTROL_PIN;
+  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(OIL_CONTROL_PORT, &GPIO_InitStruct);
+	
+	HAL_GPIO_WritePin(OIL_CONTROL_PORT,OIL_CONTROL_PIN,GPIO_PIN_SET);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -125,6 +125,28 @@ typedef enum
   LORA_FALSE = !LORA_TRUE
 } LoraBool_t;
 
+typedef enum eState
+{
+    STATE_LED,
+    STATE_WAKE_JOIN,
+    STATE_GPS_SEND,
+    STATE_GPS_ALARM,
+    STATE_LORA_ALARM
+} State_t;
+
+typedef enum eGPSState
+{
+    STATE_GPS_ON,
+	  STATE_GPS_OFF,
+	  STATE_GPS_NO,
+	  
+} GPSState_t;
+
+typedef enum eSGM
+{
+    STATE_SEND_GPS,
+	  STATE_SEND_GPS_MPU,
+} SGM_t;
 /*!
  * LoRa State Machine states 
  */
@@ -307,6 +329,13 @@ LoraState_t lora_config_duty_cycle_get(void);
 uint8_t *lora_config_deveui_get(void);
 
 /**
+  * @brief  Set Device EUI
+  * @param  None
+  * @retval DevEUI
+  */
+void lora_config_deveui_set(uint8_t deveui[8]);
+
+/**
   * @brief  Get Application EUI
   * @param  None
   * @retval AppEUI
@@ -389,7 +418,110 @@ void lora_config_tx_datarate_set(int8_t TxDataRate);
  * @retval tx datarate
  */ 
 int8_t lora_config_tx_datarate_get(void );
-  
+
+/**
+  * @brief  set 
+  * @param  
+  * @retval None
+  */
+void lora_config_application_port_set(int8_t application_port);
+
+/**
+  * @brief  get 
+  * @param  
+  * @retval None
+  */
+int8_t lora_config_application_port_get(void );
+
+/**
+  * @brief  get 
+  * @param  
+  * @retval None
+  */
+void lora_config_devaddr_get(void);
+
+
+/**
+  * @brief  set 
+  * @param  
+  * @retval None
+  */
+void lora_config_devaddr_set(uint32_t devaddr);
+
+/**
+  * @brief  Get 
+  * @param  None
+  * @retval 
+  */
+void lora_config_appskey_set(uint8_t appskey[16]);
+
+/**
+  * @brief  Get 
+  * @param  None
+  * @retval 
+  */
+uint8_t *lora_config_appskey_get(void);
+	
+/**
+  * @brief  Get 
+  * @param  None
+  * @retval 
+  */
+void lora_config_nwkskey_set(uint8_t nwkskey[16]);
+
+/**
+  * @brief  Get 
+  * @param  None
+  * @retval 
+  */
+uint8_t *lora_config_nwkskey_get(void);
+
+void Store_key(void);
+void Store_time(void);
+void Store_Config(void);
+void store_data(uint8_t size,uint8_t *data1,uint32_t data2);
+void read_data(uint8_t size,uint8_t *data1,uint32_t data3,uint32_t data4,uint32_t data5,uint32_t data6);	 
+void Read_Config(void);
+void key_printf(void);
+
+uint32_t customize_freq1_get(void);
+
+void customize_freq1_set(uint32_t Freq);
+
+uint32_t customize_set8channel_get(void);
+
+void customize_set8channel_set(uint8_t Freq);
+
+void region_printf(void);
+
+State_t lora_getState( void );
+
+SGM_t LORA_SGM( void );
+
+GPSState_t lora_getGPSState( void );
+
+void lora_state_INT(void);
+
+void lora_state_Led(void);
+
+void lora_state_Wake_Join(void);
+
+void lora_state_LoRa_Alarm(void);
+
+void lora_state_GPS_Alarm(void);
+
+void lora_state_GPS_Send(void);
+
+void gps_state_on(void);
+
+void gps_state_off(void);
+	
+void gps_state_no(void);
+
+void LORA_GPS(void);
+
+void LORA_GPS_MPU(void);
+
 #ifdef __cplusplus
 }
 #endif

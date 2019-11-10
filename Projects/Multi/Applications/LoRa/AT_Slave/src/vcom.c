@@ -1,444 +1,266 @@
-/******************************************************************************
- * @file    vcom.c
- * @author  MCD Application Team
- * @version V1.1.4
- * @date    08-January-2018
- * @brief   manages virtual com port
- ******************************************************************************
- * @attention
- *
- * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics International N.V.
- * All rights reserved.</center></h2>
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted, provided that the following conditions are met:
- *
- * 1. Redistribution of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. Neither the name of STMicroelectronics nor the names of other
- *    contributors to this software may be used to endorse or promote products
- *    derived from this software without specific written permission.
- * 4. This software, including modifications and/or derivative works of this
- *    software, must execute solely and exclusively on microcontroller or
- *    microprocessor devices manufactured by or for STMicroelectronics.
- * 5. Redistribution and use of this software other than as permitted under
- *    this license is void and will automatically terminate your rights under
- *    this license.
- *
- * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
- * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT
- * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
- * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- ******************************************************************************
- */
-#include <stdarg.h>
+ /******************************************************************************
+  * @file    vcom.c
+  * @author  MCD Application Team
+  * @version V1.1.4
+  * @date    10-July-2018
+  * @brief   manages virtual com port
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics International N.V. 
+  * All rights reserved.</center></h2>
+  *
+  * Redistribution and use in source and binary forms, with or without 
+  * modification, are permitted, provided that the following conditions are met:
+  *
+  * 1. Redistribution of source code must retain the above copyright notice, 
+  *    this list of conditions and the following disclaimer.
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  *    this list of conditions and the following disclaimer in the documentation
+  *    and/or other materials provided with the distribution.
+  * 3. Neither the name of STMicroelectronics nor the names of other 
+  *    contributors to this software may be used to endorse or promote products 
+  *    derived from this software without specific written permission.
+  * 4. This software, including modifications and/or derivative works of this 
+  *    software, must execute solely and exclusively on microcontroller or
+  *    microprocessor devices manufactured by or for STMicroelectronics.
+  * 5. Redistribution and use of this software other than as permitted under 
+  *    this license is void and will automatically terminate your rights under 
+  *    this license. 
+  *
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
+  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  ******************************************************************************
+  */
+  
 #include "hw.h"
 #include "vcom.h"
-#include "stm32l0xx_ll_lpuart.h"
-#include "stm32l0xx_ll_rcc.h"
-#include "stm32l0xx_ll_dma.h"
-#include "low_power_manager.h"
-#include "tiny_vsnprintf.h"
-#include "delay.h"
-
+#include "bsp_usart2.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#ifdef TRACE
-#define BUFSIZE_TX 256
-#else
-#define BUFSIZE_TX 128
-#endif
-
-#define BUFSIZE_RX 8
-#define MAX_PRINT_SIZE 128
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+/* Uart Handle */
+static UART_HandleTypeDef UartHandle;
 
-typedef struct {
-  char buff[BUFSIZE_TX];   /* buffer to transmit */
-  __IO int iw;             /* 1st free index in BuffTx */
-  int ir;                  /* next char to read in buffTx */
-  __IO int dmabuffSize;
-} circ_buff_tx_t;
+uint8_t charRx;
+//uint8_t uartprintf_flag=0;
 
-typedef struct {
-  char buff[BUFSIZE_RX];   /* buffer to receive */
-  __IO int iw;             /* 1st free index in BuffRx */
-  int ir;                  /* next char to read in buffRx */
-} circ_buff_rx_t;
+static void (*TxCpltCallback) (void);
 
-static struct {
-  circ_buff_rx_t rx;        /* UART rx buffer context*/
-  circ_buff_tx_t tx;        /* UART tx buffer context */
-} uart_context;             /* UART context*/
-
-static struct {
-  char buffer[10];        /* low power buffer*/
-  int len;                /* low power buffer length */
-} SleepBuff;              /* low power structure*/
-
-
+static void (*RxCpltCallback) (uint8_t *rxChar);
 /* Private function prototypes -----------------------------------------------*/
-/**
- * @brief  Takes one character that has been received and save it in uart_context.buffRx
- * @param  received character
- */
-static void receive(char rx);
-
-/**
- * @brief  prepare DMA print
- * @param  None
- */
-static void vcom_PrintDMA(void);
-
-/**
- * @brief  Starts DMA transfer into UART
- * @param  buffer adress to start
- * @param  length of buffer to transfer
- */
-static void vcom_StartDMA(char* buf, uint16_t buffLen);
-
-
 /* Functions Definition ------------------------------------------------------*/
-
-void vcom_Init(void)
+void vcom_Init(  void (*TxCb)(void) )
 {
-  LL_LPUART_InitTypeDef LPUART_InitStruct;
+
+  /*Record Tx complete for DMA*/
+  TxCpltCallback=TxCb;
   /*## Configure the UART peripheral ######################################*/
-
+  /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
+  /* UART1 configured as follow:
+      - Word Length = 8 Bits
+      - Stop Bit = One Stop bit
+      - Parity = ODD parity
+      - BaudRate = 921600 baud
+      - Hardware flow control disabled (RTS and CTS signals) */
+  UartHandle.Instance        = USARTX;
   
-  LL_RCC_SetLPUARTClockSource(LL_RCC_LPUART1_CLKSOURCE_HSI);
-  UARTX_CLK_ENABLE();
-  vcom_IoInit();
-  
-    /*##-3- Configure the NVIC for UART ########################################*/
-  /* NVIC for UART */
-  HAL_NVIC_SetPriority(UARTX_IRQn, IRQ_PRIORITY_USARTX, 0);
-  HAL_NVIC_EnableIRQ(UARTX_IRQn);
-  
-  LPUART_InitStruct.BaudRate = 9600;
-  LPUART_InitStruct.DataWidth = LL_LPUART_DATAWIDTH_8B;
-  LPUART_InitStruct.StopBits = LL_LPUART_STOPBITS_1;
-  LPUART_InitStruct.Parity = LL_LPUART_PARITY_NONE;
-  LPUART_InitStruct.TransferDirection = LL_LPUART_DIRECTION_TX_RX;
-  LPUART_InitStruct.HardwareFlowControl = LL_LPUART_HWCONTROL_NONE;
-  
-  LL_LPUART_Init(UARTX, &LPUART_InitStruct);
-    /* Configuring the LPUART specific LP feature - the wakeup from STOP */
-  LL_LPUART_EnableInStopMode(UARTX);
-  
-  LL_LPUART_Enable(UARTX);
-  
-  while (LL_LPUART_IsActiveFlag_TEACK(UARTX) == RESET);
-  while (LL_LPUART_IsActiveFlag_REACK(UARTX) == RESET);
-}
+  UartHandle.Init.BaudRate   = 9600;
+  UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+  UartHandle.Init.StopBits   = UART_STOPBITS_1;
+  UartHandle.Init.Parity     = UART_PARITY_NONE;
+  UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+  UartHandle.Init.Mode       = UART_MODE_TX_RX;
 
-void vcom_DeInit(void)
-{
-  LL_LPUART_DeInit(UARTX);
-}
-
-void vcom_IoInit(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct;
-
-  /* UART TX GPIO pin configuration  */
-  GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull      = GPIO_NOPULL;
-  GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_MEDIUM;
-  GPIO_InitStruct.Alternate = UARTX_TX_AF;
-
-  HW_GPIO_Init(UARTX_TX_GPIO_PORT, UARTX_TX_PIN, &GPIO_InitStruct);
-
-  /* UART RX GPIO pin configuration  */
-  GPIO_InitStruct.Alternate = UARTX_RX_AF;
-
-  HW_GPIO_Init(UARTX_RX_GPIO_PORT, UARTX_RX_PIN, &GPIO_InitStruct);
-}
-
-void vcom_IoDeInit(void)
-{
-  GPIO_InitTypeDef GPIO_InitStructure = {0};
-
-  GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStructure.Pull = GPIO_NOPULL;
-
-  HW_GPIO_Init(UARTX_TX_GPIO_PORT, UARTX_TX_PIN, &GPIO_InitStructure);
-
-  HW_GPIO_Init(UARTX_RX_GPIO_PORT, UARTX_RX_PIN, &GPIO_InitStructure);
-}
-
-void vcom_ReceiveInit(void)
-{
-  /* enable RXNE */
-  LL_LPUART_EnableIT_RXNE(UARTX);
-  /* WakeUp from stop mode on start bit detection*/
-  LL_LPUART_SetWKUPType(UARTX, LL_LPUART_WAKEUP_ON_STARTBIT);
-
-  LL_LPUART_EnableIT_WKUP(UARTX);
-  /* Enable the UART Parity Error Interrupt */
-  LL_LPUART_EnableIT_PE(UARTX);
-  /* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-  LL_LPUART_EnableIT_ERROR(UARTX);
-}
-
-void vcom_Send( const char *format, ... )
-{
-  va_list args;
-  va_start(args, format);
-  uint8_t len=0;
-  uint8_t lenTop;
-  char tempBuff[MAX_PRINT_SIZE];
-  int32_t freebuff;
-
-  /* calculate free buffer size*/
-  /*in case freebuff is negative this is an overrun*/
-  freebuff = BUFSIZE_TX - (uart_context.tx.iw-uart_context.tx.ir);
-
-  if (SleepBuff.len!=0)
+  if(HAL_UART_Init(&UartHandle) != HAL_OK)
   {
-    /*if SleepBuff has been filled before entering lowpower, prepend it */
-    memcpy(&tempBuff[0], SleepBuff.buffer, SleepBuff.len);
-    len = tiny_vsnprintf_like(&tempBuff[SleepBuff.len], sizeof(tempBuff), format, args); 
-    len += SleepBuff.len;
-    /*erase SleepBuff*/
-    memset(SleepBuff.buffer, 0,sizeof(SleepBuff.buffer) );
-    SleepBuff.len=0;
+    /* Initialization Error */
+    Error_Handler(); 
   }
-  else
-  {
-  /*convert into string at buff[0] of length iw*/
-    len = tiny_vsnprintf_like(&tempBuff[0], sizeof(tempBuff), format, args); 
-  }
-  
-  if (len>freebuff)
-  {
-    /*wait enough free char in buff*/
-    /*1 char at 9600 lasts approx 1ms*/
-    DelayMs(len-freebuff);
-  }
-
-  if (((uart_context.tx.iw)%BUFSIZE_TX)+len<BUFSIZE_TX)
-  {
-    memcpy( &uart_context.tx.buff[((uart_context.tx.iw)%BUFSIZE_TX)], &tempBuff[0], len);
-    uart_context.tx.iw+=len;
-  }
-  else
-  {
-    /*cut buffer in high/low part*/
-    lenTop= BUFSIZE_TX - ((uart_context.tx.iw)%BUFSIZE_TX);
-    /*copy beginning at top part of the circ buf*/
-    memcpy( &uart_context.tx.buff[((uart_context.tx.iw)%BUFSIZE_TX)], &tempBuff[0], lenTop);
-     /*copy end at bottom part of the circ buf*/
-    memcpy( &uart_context.tx.buff[0], &tempBuff[lenTop], len-lenTop);
-    uart_context.tx.iw += len;
-  }
-
-  if (! LL_DMA_IsEnabledChannel(DMA1, LL_DMA_CHANNEL_7) )
-  {
-    vcom_PrintDMA();
-  }
-  
-  va_end(args);
 }
 
-void vcom_Send_Lp(const char *format, ...)
+void vcom_Trace(  uint8_t *p_data, uint16_t size )
 {
-  /*special vcomsend to avoid waking up any time MCU goes to sleep*/
-  va_list args;
-  va_start(args, format);
-  
-  SleepBuff.len = tiny_vsnprintf_like(&SleepBuff.buffer[0], sizeof(SleepBuff.buffer), format, args); 
-  
-  va_end(args);
+    HAL_UART_Transmit_DMA(&UartHandle,p_data, size);
 }
 
-FlagStatus IsNewCharReceived(void)
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
-  FlagStatus status;
-  
-  BACKUP_PRIMASK();
-  DISABLE_IRQ();
-  
-  status = ((uart_context.rx.iw == uart_context.rx.ir) ? RESET : SET);
-  
-  RESTORE_PRIMASK();
-  return status;
+  /* buffer transmission complete*/
+   if (NULL != TxCpltCallback)
+   {
+     TxCpltCallback(); 
+   }
 }
 
-uint8_t GetNewChar(void)
+void vcom_ReceiveInit(  void (*RxCb)(uint8_t *rxChar) )
 {
-  uint8_t NewChar;
+  UART_WakeUpTypeDef WakeUpSelection;
+  
+  /*record call back*/
+  RxCpltCallback=RxCb;
 
-  BACKUP_PRIMASK();
-  DISABLE_IRQ();
+  /*Set wakeUp event on start bit*/
+  WakeUpSelection.WakeUpEvent=UART_WAKEUP_ON_STARTBIT;  
+//  
+  HAL_UARTEx_StopModeWakeUpSourceConfig(&UartHandle, WakeUpSelection );
+  
+  /*Enable wakeup from stop mode*/
+  HAL_UARTEx_EnableStopMode(&UartHandle);
+  
+  /*Start LPUART receive on IT*/
+  HAL_UART_Receive_IT(&UartHandle, &charRx,1);
+}
 
-  NewChar = uart_context.rx.buff[uart_context.rx.ir];
-  uart_context.rx.ir = (uart_context.rx.ir + 1) % sizeof(uart_context.rx.buff);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+   if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE ==UartHandle->ErrorCode))
+   {
+     RxCpltCallback(&charRx);
+   }
+   HAL_UART_Receive_IT(UartHandle, &charRx,1);
+}
 
-  RESTORE_PRIMASK();
-  return NewChar;
+void vcom_DMA_TX_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(UartHandle.hdmatx);
 }
 
 void vcom_IRQHandler(void)
 {
-  if ( LL_LPUART_IsActiveFlag_TC(UARTX) && (LL_LPUART_IsEnabledIT_TC(UARTX) != RESET) )/*tx*/
-  {
-    /*last uart char has just been sent out to terminal*/
-    LL_LPUART_ClearFlag_TC(UARTX);
-    /*enable lowpower since finished*/
-    LPM_SetStopMode(LPM_UART_TX_Id, LPM_Enable);
-  }
-  /*rx*/
-  {
-    __IO int rx_ready = 0;
-    char rx = AT_ERROR_RX_CHAR;
-    
-    /* UART Wake Up interrupt occured ------------------------------------------*/
-    if (LL_LPUART_IsActiveFlag_WKUP(UARTX) && (LL_LPUART_IsEnabledIT_WKUP(UARTX) != RESET))
-    {
-      LL_LPUART_ClearFlag_WKUP(UARTX);
-
-      /* forbid stop mode */
-      LPM_SetStopMode(LPM_UART_RX_Id, LPM_Disable);
-    }
-
-    if (LL_LPUART_IsActiveFlag_RXNE(UARTX) && (LL_LPUART_IsEnabledIT_RXNE(UARTX) != RESET))
-    {
-      /* no need to clear the RXNE flag because it is auto cleared by reading the data*/
-      rx = LL_LPUART_ReceiveData8(UARTX);
-      rx_ready = 1;
-      
-      /* allow stop mode*/
-      LPM_SetStopMode(LPM_UART_RX_Id, LPM_Enable);
-    }
-
-    if (LL_LPUART_IsActiveFlag_PE(UARTX) || LL_LPUART_IsActiveFlag_FE(UARTX) || LL_LPUART_IsActiveFlag_ORE(UARTX) || LL_LPUART_IsActiveFlag_NE(UARTX))
-    {
-      DBG_PRINTF("Error when receiving\n\r");
-      /* clear error IT */
-      LL_LPUART_ClearFlag_PE(UARTX);
-      LL_LPUART_ClearFlag_FE(UARTX);
-      LL_LPUART_ClearFlag_ORE(UARTX);
-      LL_LPUART_ClearFlag_NE(UARTX);
-      
-      rx = AT_ERROR_RX_CHAR;
-      
-      rx_ready = 1;
-    }
-    
-    if (rx_ready == 1)
-    {
-      receive(rx);
-    }
-  }
+  HAL_UART_IRQHandler(&UartHandle);
 }
 
-static void receive(char rx)
+void vcom_DeInit(void)
 {
-  int next_free;
-
-  /** no need to clear the RXNE flag because it is auto cleared by reading the data*/
-  uart_context.rx.buff[uart_context.rx.iw] = rx;
-  next_free = (uart_context.rx.iw + 1) % sizeof(uart_context.rx.buff);
-  if (next_free != uart_context.rx.iw)
-  {
-    /* this is ok to read as there is no buffer overflow in input */
-    uart_context.rx.iw = next_free;
-  }
-  else
-  {
-    /* force the end of a command in case of overflow so that we can process it */
-    uart_context.rx.buff[uart_context.rx.iw] = '\r';
-    DBG_PRINTF("uart_context.buffRx buffer overflow %d\r\n");
-  }
+  HAL_UART_DeInit(&UartHandle);
 }
 
-void vcom_Dma_IRQHandler( void )
+void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
-  if (LL_DMA_IsActiveFlag_TC7(DMA1) )
-  {
-    /*clear interrupt and flag*/
-    LL_DMA_DisableIT_TC(DMA1, LL_DMA_CHANNEL_7);
+  static DMA_HandleTypeDef hdma_tx;
+  
+  
+  /*##-1- Enable peripherals and GPIO Clocks #################################*/
+  /* Enable GPIO TX/RX clock */
+  USARTX_TX_GPIO_CLK_ENABLE();
+  USARTX_RX_GPIO_CLK_ENABLE();
+	__USART1_CLK_ENABLE();
+  /* Enable USARTX clock */
+  USARTX_CLK_ENABLE();
+   /* select USARTX clock source*/
+  RCC_PeriphCLKInitTypeDef  PeriphClkInit={0};
+  PeriphClkInit.PeriphClockSelection=RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.Lpuart1ClockSelection=RCC_LPUART1CLKSOURCE_HSI;
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
+
+  /* Enable DMA clock */
+  DMAX_CLK_ENABLE();
+  
+  /*##-2- Configure peripheral GPIO ##########################################*/  
+  /* UART  pin configuration  */
+  vcom_IoInit();
+  usart1_IoInit();
+  /*##-3- Configure the DMA ##################################################*/
+  /* Configure the DMA handler for Transmission process */
+  hdma_tx.Instance                 = USARTX_TX_DMA_CHANNEL;
+  hdma_tx.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+  hdma_tx.Init.PeriphInc           = DMA_PINC_DISABLE;
+  hdma_tx.Init.MemInc              = DMA_MINC_ENABLE;
+  hdma_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+  hdma_tx.Init.Mode                = DMA_NORMAL;
+  hdma_tx.Init.Priority            = DMA_PRIORITY_LOW;
+#ifndef STM32L152xE
+  hdma_tx.Init.Request             = USARTX_TX_DMA_REQUEST;
+#endif
+  HAL_DMA_Init(&hdma_tx);
+
+  /* Associate the initialized DMA handle to the UART handle */
+  __HAL_LINKDMA(huart, hdmatx, hdma_tx);
     
-    LL_DMA_ClearFlag_TC7(DMA1);
-    /* update tx read index*/
-    uart_context.tx.ir += uart_context.tx.dmabuffSize;
+  /*##-4- Configure the NVIC for DMA #########################################*/
+  /* NVIC configuration for DMA transfer complete interrupt*/
+  HAL_NVIC_SetPriority(USARTX_DMA_TX_IRQn, USARTX_Priority, 1);
+  HAL_NVIC_EnableIRQ(USARTX_DMA_TX_IRQn);
     
-    LL_DMA_DisableChannel( DMA1, LL_DMA_CHANNEL_7);
-    
-    LL_LPUART_DisableDMAReq_TX(UARTX);
-  }
-  if ( uart_context.tx.ir!= uart_context.tx.iw)
-  {
-    /*continue if more has been written in buffer meanwhile*/
-    vcom_PrintDMA();
-  }
+  /* NVIC for USART, to catch the TX complete */
+  HAL_NVIC_SetPriority(USARTX_IRQn, USARTX_DMA_Priority, 1);
+  HAL_NVIC_EnableIRQ(USARTX_IRQn);
 }
 
-static void vcom_PrintDMA(void)
+void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 {
-  uint16_t write_idx=  (uart_context.tx.iw)%BUFSIZE_TX;
-  uint16_t read_idx=   (uart_context.tx.ir)%BUFSIZE_TX;
-  /*shall not go in stop mode while printing*/
-  LPM_SetStopMode(LPM_UART_TX_Id, LPM_Disable);
-
-  if (write_idx > read_idx)
+  vcom_IoDeInit( );
+	usart1_IoDeInit();
+  /*##-1- Reset peripherals ##################################################*/
+  USARTX_FORCE_RESET();
+  USARTX_RELEASE_RESET();
+   
+  /*##-3- Disable the DMA #####################################################*/
+  /* De-Initialize the DMA channel associated to reception process */
+  if(huart->hdmarx != 0)
   {
-    /*contiguous buffer[ir..iw]*/
-    uart_context.tx.dmabuffSize= write_idx - read_idx;
-
-    vcom_StartDMA( &uart_context.tx.buff[read_idx], uart_context.tx.dmabuffSize);
+    HAL_DMA_DeInit(huart->hdmarx);
   }
-  else
+  /* De-Initialize the DMA channel associated to transmission process */
+  if(huart->hdmatx != 0)
   {
-    /*[ir:BUFSIZE_TX-1] and [0:iw]. */
-     uart_context.tx.dmabuffSize= BUFSIZE_TX-read_idx;
-     /*only [ir:BUFSIZE_TX-1] sent, rest will be sent in dma  handler*/
-     vcom_StartDMA( &uart_context.tx.buff[read_idx], uart_context.tx.dmabuffSize);
-  }
+    HAL_DMA_DeInit(huart->hdmatx);
+  }  
+  
+  /*##-4- Disable the NVIC for DMA ###########################################*/
+  HAL_NVIC_DisableIRQ(USARTX_DMA_TX_IRQn);
 }
 
-static void vcom_StartDMA(char* buf, uint16_t buffLen)
+void vcom_IoInit(void)
 {
-  LL_DMA_InitTypeDef DMA_InitStruct;
-  /*switch dma clock ON*/
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
-  /*dma initialisation*/  
-  DMA_InitStruct.Direction= LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
-  DMA_InitStruct.PeriphOrM2MSrcAddress=(uint32_t) &UARTX->TDR;
-  DMA_InitStruct.PeriphOrM2MSrcDataSize= LL_DMA_PDATAALIGN_BYTE;
-  DMA_InitStruct.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;  
-  DMA_InitStruct.Mode= LL_DMA_MODE_NORMAL;
-  DMA_InitStruct.MemoryOrM2MDstAddress= (uint32_t) buf;
-  DMA_InitStruct.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
-  DMA_InitStruct.MemoryOrM2MDstDataSize= LL_DMA_MDATAALIGN_BYTE;  
-  DMA_InitStruct.NbData= buffLen;  
-  DMA_InitStruct.PeriphRequest=LL_DMA_REQUEST_5;
-  DMA_InitStruct.Priority=LL_DMA_PRIORITY_LOW;
-  LL_DMA_Init(DMA1, LL_DMA_CHANNEL_7,&DMA_InitStruct );
-    /*enable DMA transmit complete interrupt*/
-  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_7);
-  /* enable DMA nvic*/
-  HAL_NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, IRQ_PRIORITY_USARTX, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
-  /* enable LPUART DMA request*/
-  LL_LPUART_EnableDMAReq_TX(UARTX);
-  /*enable DMA channel*/
-  LL_DMA_EnableChannel( DMA1, LL_DMA_CHANNEL_7); 
-  /*enable LPUART transmitt complete interrupt*/
-  LL_LPUART_EnableIT_TC(UARTX);
+  GPIO_InitTypeDef  GPIO_InitStruct={0};
+    /* Enable GPIO TX/RX clock */
+  USARTX_TX_GPIO_CLK_ENABLE();
+  USARTX_RX_GPIO_CLK_ENABLE();
+    /* UART TX GPIO pin configuration  */
+  GPIO_InitStruct.Pin       = USARTX_TX_PIN;
+  GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull      = GPIO_NOPULL;
+  GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+  GPIO_InitStruct.Alternate = USARTX_TX_AF;
+
+  HAL_GPIO_Init(USARTX_TX_GPIO_PORT, &GPIO_InitStruct);
+
+  /* UART RX GPIO pin configuration  */
+  GPIO_InitStruct.Pin = USARTX_RX_PIN;
+  GPIO_InitStruct.Alternate = USARTX_RX_AF;
+
+  HAL_GPIO_Init(USARTX_RX_GPIO_PORT, &GPIO_InitStruct);
+}
+
+void vcom_IoDeInit(void)
+{
+  GPIO_InitTypeDef GPIO_InitStructure={0};
+  
+  USARTX_TX_GPIO_CLK_ENABLE();
+
+  GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStructure.Pull = GPIO_NOPULL;
+  
+  GPIO_InitStructure.Pin =  USARTX_TX_PIN ;
+  HAL_GPIO_Init(  USARTX_TX_GPIO_PORT, &GPIO_InitStructure );
+  
+  GPIO_InitStructure.Pin =  USARTX_RX_PIN ;
+  HAL_GPIO_Init(  USARTX_RX_GPIO_PORT, &GPIO_InitStructure ); 
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

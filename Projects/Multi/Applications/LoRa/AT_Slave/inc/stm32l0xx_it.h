@@ -13,11 +13,11 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 Maintainer: Miguel Luis and Gregory Cristian
 */
  /******************************************************************************
-  * @file    hw_gpio.h
+  * @file    stm32l0xx_it.h
   * @author  MCD Application Team
   * @version V1.1.4
   * @date    08-January-2018
-  * @brief   Header for driver hw_rtc.c module
+  * @brief   manages interupt
   ******************************************************************************
   * @attention
   *
@@ -59,96 +59,37 @@ Maintainer: Miguel Luis and Gregory Cristian
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HW_GPIO_H__
-#define __HW_GPIO_H__
-
+#ifndef __STM32L0xx_IT_H__
+#define __STM32L0xx_IT_H__
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
-   
+/* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
-   
-typedef void( GpioIrqHandler )( void );
-   
 /* Exported constants --------------------------------------------------------*/
-/* External variables --------------------------------------------------------*/
-/* Exported macros -----------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */ 
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
 
-   
-/*!
- * GPIO IRQ handler function prototype
- */
-
-
-IRQn_Type MSP_GetIRQn( uint16_t gpioPin);
-
-
-/*!
- * @brief Initializes the given GPIO object
- *
- * @param  GPIOx: where x can be (A..E and H)
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @param [IN] initStruct  GPIO_InitTypeDef intit structure
- * @retval none
- */
-void HW_GPIO_Init( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct);
-
-/*!
- * @brief Records the interrupt handler for the GPIO  object
- *
- * @param  GPIOx: where x can be (A..E and H) 
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @param [IN] prio       NVIC priority (0 is highest)
- * @param [IN] irqHandler  points to the  function to execute
- * @retval none
- */
-void HW_GPIO_SetIrq( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uint32_t prio,  GpioIrqHandler *irqHandler );
-
-/*!
- * @brief Execute the interrupt from the object
- *
- * @param  GPIOx: where x can be (A..E and H) 
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @retval none
- */
-void HW_GPIO_IrqHandler( uint16_t GPIO_Pin );
-
-/*!
- * @brief Writes the given value to the GPIO output
- *
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @param [IN] value New GPIO output value
- * @retval none
- */
-void HW_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value );
-
-/*!
- * @brief Reads the current GPIO input value
- *
- * @param  GPIOx: where x can be (A..E and H) 
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @retval value   Current GPIO input value
- */
-uint32_t HW_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin );
-
+void NMI_Handler(void);
+void HardFault_Handler(void);
+void MemManage_Handler(void);
+void BusFault_Handler(void);
+void UsageFault_Handler(void);
+void SVC_Handler(void);
+void DebugMon_Handler(void);
+void PendSV_Handler(void);
+void SysTick_Handler(void);
+void EXTI4_15_IRQHandler(void);
+void TIM21_IRQHandler(void);
+void UARTX_IRQHandler(void);
+void USARTX_DMA_TX_IRQHandler(void);
+	
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __HW_GPIO_H__ */
+#endif /* __STM32L0xx_IT_H__ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

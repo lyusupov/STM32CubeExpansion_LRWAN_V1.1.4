@@ -30,6 +30,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jae
 
 #include "debug.h"
 #include "LoRaMacTest.h"
+#include "bsp.h"
 
 
 
@@ -163,6 +164,12 @@ static uint8_t LoRaMacRxPayload[LORAMAC_PHY_MAXPAYLOAD];
  */
 static uint32_t UpLinkCounter = 0;
 
+uint8_t Alarm_times = 60;
+
+uint8_t Alarm_times1 = 0;
+
+uint8_t Restart = 1;
+
 /*!
  * LoRaMAC frame counter. Each time a packet is received the counter is incremented.
  * Only the 16 LSB bits are received
@@ -174,6 +181,8 @@ static uint32_t DownLinkCounter = 0;
  * UpLinkCounter value
  */
 static bool IsUpLinkCounterFixed = false;
+
+static void onNetworkJointimesout( void );
 
 /*!
  * Used for test purposes. Disables the opening of the reception windows.
@@ -1249,13 +1258,17 @@ static void OnMacStateCheckTimerEvent( void )
                     if( MlmeConfirm.Status == LORAMAC_EVENT_INFO_STATUS_OK )
                     {// Node joined successfully
                         UpLinkCounter = 0;
+											  Alarm_times = 60;
+			                  Alarm_times1 = 0;
                         ChannelsNbRepCounter = 0;
                         LoRaMacState &= ~LORAMAC_TX_RUNNING;
+
                     }
                     else
                     {
                         if( JoinRequestTrials >= MaxJoinRequestTrials )
                         {
+													  NVIC_SystemReset();
                             LoRaMacState &= ~LORAMAC_TX_RUNNING;
                         }
                         else
@@ -1282,6 +1295,8 @@ static void OnMacStateCheckTimerEvent( void )
                         if( IsUpLinkCounterFixed == false )
                         {
                             UpLinkCounter++;
+													  Alarm_times ++;
+		                      	Alarm_times1 ++;
                         }
 
                         LoRaMacState &= ~LORAMAC_TX_RUNNING;
@@ -1305,6 +1320,8 @@ static void OnMacStateCheckTimerEvent( void )
                 if( IsUpLinkCounterFixed == false )
                 {
                     UpLinkCounter++;
+										Alarm_times ++;
+		                Alarm_times1 ++;
                 }
                 McpsConfirm.NbRetries = AckTimeoutRetriesCounter;
 
@@ -1346,6 +1363,8 @@ static void OnMacStateCheckTimerEvent( void )
                     if( IsUpLinkCounterFixed == false )
                     {
                         UpLinkCounter++;
+												Alarm_times ++;
+		                    Alarm_times1 ++;
                     }
                 }
             }
@@ -1362,6 +1381,8 @@ static void OnMacStateCheckTimerEvent( void )
                 if( IsUpLinkCounterFixed == false )
                 {
                     UpLinkCounter++;
+										Alarm_times ++;
+										Alarm_times1 ++;
                 }
             }
         }
@@ -1967,7 +1988,8 @@ static LoRaMacStatus_t ScheduleTx( void )
         RxWindow2Delay = LoRaMacParams.ReceiveDelay2 + RxWindow2Config.WindowOffset;
     }
 
-    // Schedule transmission of frame
+    /*
+		// Schedule transmission of frame
     if( dutyCycleTimeOff == 0 )
     {
         // Try to send now
@@ -1982,6 +2004,59 @@ static LoRaMacStatus_t ScheduleTx( void )
 
         return LORAMAC_STATUS_OK;
     }
+		*/
+		if( IsLoRaMacNetworkJoined == true )
+		{
+		  // Schedule transmission of frame
+      if( dutyCycleTimeOff == 0 )
+      {
+        // Try to send now
+        return SendFrameOnChannel( Channel );
+      }
+    else
+      {
+        // Send later - prepare timer
+        LoRaMacState |= LORAMAC_TX_DELAYED;
+        TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff );
+        TimerStart( &TxDelayedTimer );
+
+        return LORAMAC_STATUS_OK;
+      }
+	  }
+		else
+		{
+			if(JoinRequestTrials>50)
+			{
+				TimerInit( &TxDelayedTimer, onNetworkJointimesout );
+        TimerSetValue( &TxDelayedTimer, 1800000 );
+        TimerStart( &TxDelayedTimer );
+
+        return LORAMAC_STATUS_OK;
+			}
+			else
+			{
+				// Schedule transmission of frame
+        if( dutyCycleTimeOff == 0 )
+        { 
+          // Try to send now
+          return SendFrameOnChannel( Channel );
+        }
+        else
+        {
+          // Send later - prepare timer
+          LoRaMacState |= LORAMAC_TX_DELAYED;
+          TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff );
+          TimerStart( &TxDelayedTimer );
+
+          return LORAMAC_STATUS_OK;
+        }
+			}
+		}
+}
+
+static void onNetworkJointimesout( void )
+{
+	SendFrameOnChannel( Channel );
 }
 
 static void CalculateBackOff( uint8_t channel )
@@ -2010,7 +2085,13 @@ static void ResetMacParameters( void )
     UpLinkCounter = 0;
     DownLinkCounter = 0;
     AdrAckCounter = 0;
-
+		BSP_sensor_Init();
+		LED1_1;
+		HAL_Delay(200);	
+		LED1_0;
+	  Alarm_times = 60;
+	  Alarm_times1 = 0;
+	
     ChannelsNbRepCounter = 0;
 
     AckTimeoutRetries = 1;
@@ -2229,7 +2310,8 @@ LoRaMacStatus_t SendFrameOnChannel( uint8_t channel )
     txConfig.AntennaGain = LoRaMacParams.AntennaGain;
     txConfig.PktLen = LoRaMacBufferPktLen;
 
-    DBG_PRINTF( "\n\r*** seqTx= %d *****\n\r", UpLinkCounter );
+    PRINTF( "\n\r***** UpLinkCounter= %d *****\n\r", UpLinkCounter );
+	  Restart = 0;
 
     RegionTxConfig( LoRaMacRegion, &txConfig, &txPower, &TxTimeOnAir );
 

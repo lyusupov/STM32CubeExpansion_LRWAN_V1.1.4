@@ -61,8 +61,9 @@ Maintainer: Miguel Luis and Gregory Cristian
 /* Includes ------------------------------------------------------------------*/
 #include "hw.h"
 #include "stm32l0xx_it.h"
+#include "vcom.h"
 
-
+extern int exti_flag;
 /** @addtogroup STM32L1xx_HAL_Examples
   * @{
   */
@@ -202,9 +203,14 @@ void SysTick_Handler(void)
 {
 }*/
 
-void USART2_IRQHandler( void )
+void USARTX_IRQHandler( void )
 {
-   vcom_Print( );
+  vcom_IRQHandler();
+}
+
+void USARTX_DMA_TX_IRQHandler(void)
+{
+  vcom_DMA_TX_IRQHandler();
 }
 
 void RTC_IRQHandler( void )
@@ -249,7 +255,13 @@ void EXTI4_15_IRQHandler( void )
 
   HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
 
-  HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_14 );
+//  HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_14 );
+ if(__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_14) != RESET) 
+  { 
+	 exti_flag=1;
+	 __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_14);
+   HAL_GPIO_EXTI_Callback(GPIO_PIN_14);
+  }
 
   HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_15 );
 }

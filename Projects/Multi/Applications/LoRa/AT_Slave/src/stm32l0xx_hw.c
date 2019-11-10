@@ -62,7 +62,8 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "debug.h"
 #include "bsp.h"
 #include "vcom.h"
-
+#include "bsp_usart2.h"
+#include "lora.h"
 /*!
  *  \brief Unique Devices IDs register set ( STM32L0xxx )
  */
@@ -77,7 +78,7 @@ Maintainer: Miguel Luis and Gregory Cristian
  /* Internal voltage reference, parameter VREFINT_CAL*/
 #define VREFINT_CAL       ((uint16_t*) ((uint32_t) 0x1FF80078))
 #define LORAWAN_MAX_BAT   254
-
+extern uint16_t batteryLevel_mV;
 
 /* Internal temperature sensor: constants data used for indicative values in  */
 /* this example. Refer to device datasheet for min/typ/max values.            */
@@ -136,7 +137,8 @@ void HW_Init( void )
 
     HW_RTC_Init( );
     
-    vcom_Init( );
+    TraceInit( );
+	
     
     BSP_sensor_Init( );
 
@@ -156,6 +158,8 @@ void HW_DeInit( void )
   Radio.IoDeInit( );
   
   vcom_DeInit( );
+	
+	usart1_DeInit();
    
   McuInitialized = false;
 }
@@ -170,8 +174,8 @@ static void HW_IoInit( void )
   HW_SPI_IoInit( );
   
   Radio.IoInit( );
-  
-  vcom_IoInit( );
+	
+
 }
 
 /**
@@ -184,8 +188,14 @@ static void HW_IoDeInit( void )
   HW_SPI_IoDeInit( );
   
   Radio.IoDeInit( );
-  
-  vcom_IoDeInit( );
+	
+	BSP_sensor_DeInit();
+	
+  if((lora_getState() != STATE_WAKE_JOIN))
+	{	
+		GPS_doinit();
+	}
+
 }
 
 
@@ -215,7 +225,7 @@ void SystemClock_Config( void )
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 
-  /* Enable HSE Oscillator and Activate PLL with HSE as source */
+  /* Enable HSI Oscillator and Activate PLL with HSI as source */
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSEState            = RCC_HSE_OFF;
   RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
@@ -326,14 +336,14 @@ uint8_t HW_GetBatteryLevel( void )
 
   if (measuredLevel == 0)
   {
-    batteryLevelmV = 0;
+    batteryLevel_mV = 0;
   }
   else
   {
-    batteryLevelmV= (( (uint32_t) VDDA_VREFINT_CAL * (*VREFINT_CAL ) )/ measuredLevel);
+    batteryLevel_mV= (( (uint32_t) VDDA_VREFINT_CAL * (*VREFINT_CAL ) )/ measuredLevel);
   }
 
-  if (batteryLevelmV > VDD_BAT)
+  if (batteryLevel_mV > VDD_BAT)
   {
     batteryLevel = LORAWAN_MAX_BAT;
   }
@@ -391,6 +401,8 @@ void HW_AdcInit( void )
     initStruct.Speed = GPIO_SPEED_HIGH;
 
     HW_GPIO_Init( BAT_LEVEL_PORT, BAT_LEVEL_PIN, &initStruct );
+		HW_GPIO_Init( Oil_LEVEL_PORT, Oil_LEVEL_PIN, &initStruct );
+		HW_GPIO_Init( ADC_IN1_LEVEL_PORT, ADC_IN1_LEVEL_PIN, &initStruct );
 #endif
   }
 }
@@ -467,7 +479,7 @@ void LPM_EnterStopMode( void)
   
   /*clear wake up flag*/
   SET_BIT(PWR->CR, PWR_CR_CWUF);
-  
+	
   RESTORE_PRIMASK( );
 
   /* Enter Stop Mode */

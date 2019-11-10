@@ -1,3 +1,17 @@
+/*
+ / _____)             _              | |
+( (____  _____ ____ _| |_ _____  ____| |__
+ \____ \| ___ |    (_   _) ___ |/ ___)  _ \
+ _____) ) ____| | | || |_| ____( (___| | | |
+(______/|_____)_|_|_| \__)_____)\____)_| |_|
+    (C)2013 Semtech
+
+Description: contains hardaware configuration Macros and Constants
+
+License: Revised BSD License, see LICENSE.TXT file include in the project
+
+Maintainer: Miguel Luis and Gregory Cristian
+*/
  /******************************************************************************
   * @file    hw_conf.h
   * @author  MCD Application Team
@@ -100,41 +114,24 @@
   #include "stm32l4xx_hal.h"
   #include "stm32l4xx_nucleo.h"
   #include "stm32l4xx_hal_conf.h"
-  #error "create stm32l4xx_hw_conf.h "
   #include "stm32l4xx_hw_conf.h"
 #endif
 
 #ifdef USE_B_L072Z_LRWAN1
-#include "mlm32l0xx_hw_conf.h"
-#include "b-l072z-lrwan1.h"
-#include "stm32l0xx_ll_adc.h"
-#include "stm32l0xx_ll_bus.h"
-#include "stm32l0xx_ll_cortex.h"
-#include "stm32l0xx_ll_exti.h"
-#include "stm32l0xx_ll_gpio.h"
-#include "stm32l0xx_ll_pwr.h"
-#include "stm32l0xx_ll_rcc.h"
-#include "stm32l0xx_ll_rtc.h"
-#include "stm32l0xx_ll_spi.h"
-#include "stm32l0xx_ll_system.h"
-#include "stm32l0xx_ll_lpuart.h"
+  #include "stm32l0xx_hal.h"
+  #include "b-l072z-lrwan1.h"
+  #include "stm32l0xx_hal_conf.h"
+  #include "mlm32l0xx_hw_conf.h"
 #endif
 
 /* --------Preprocessor compile swicth------------ */
-/* debug swicthes in debug.h */
-//#define DEBUG
-//#define TRACE
+#define LoRa_Sensor_Node   /*LSN50 Device*/
+//#define AT_Data_Send         /*LoRa ST Module*/
+
    
 /* uncomment below line to never enter lowpower modes in main.c*/
 //#define LOW_POWER_DISABLE
-
-/* debug swicthes in bsp.c */
-//#define SENSOR_ENABLED
-
-#define IRQ_PRIORITY_USARTX 2
-#define IRQ_PRIORITY_ALARMA 0
-
-
+  
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 

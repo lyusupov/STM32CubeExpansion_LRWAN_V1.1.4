@@ -1,23 +1,10 @@
-/*
- / _____)             _              | |
-( (____  _____ ____ _| |_ _____  ____| |__
- \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- _____) ) ____| | | || |_| ____( (___| | | |
-(______/|_____)_|_|_| \__)_____)\____)_| |_|
-    (C)2013 Semtech
-
-Description: contains all hardware driver
-
-License: Revised BSD License, see LICENSE.TXT file include in the project
-
-Maintainer: Miguel Luis and Gregory Cristian
-*/
- /******************************************************************************
-  * @file    hw.h
+/**
+  ******************************************************************************
+  * @file    stm32l1xx_it.h
   * @author  MCD Application Team
   * @version V1.1.4
   * @date    08-January-2018
-  * @brief   contains all hardware driver
+  * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   * @attention
   *
@@ -59,51 +46,33 @@ Maintainer: Miguel Luis and Gregory Cristian
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HW_H__
-#define __HW_H__
+#ifndef __STM32L1xx_IT_H__
+#define __STM32L1xx_IT_H__
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
+
 /* Includes ------------------------------------------------------------------*/
-#include <math.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include "hw_conf.h"
-#include "hw_gpio.h"
-#include "hw_spi.h"
-#include "hw_rtc.h"
-#include "hw_msp.h"
-#include "debug.h"
-#include "trace.h"
-	 
-	 typedef enum
-{
-  HW_UNLOCKED = 0x00U,
-  HW_LOCKED   = 0x01U
-} HW_LockTypeDef;
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
 
-#define HW_LOCK(__HANDLE__)               \
-  do {                                    \
-    if ((__HANDLE__)->Lock == HW_LOCKED)  \
-    {                                     \
-      return;                             \
-    }                                     \
-    else                                  \
-    {                                     \
-      (__HANDLE__)->Lock = HW_LOCKED;     \
-    }                                     \
-  } while (0)
+void NMI_Handler(void);
+void HardFault_Handler(void);
+void MemManage_Handler(void);
+void BusFault_Handler(void);
+void UsageFault_Handler(void);
+void SVC_Handler(void);
+void DebugMon_Handler(void);
+void PendSV_Handler(void);
+void SysTick_Handler(void);
 
-#define HW_UNLOCK(__HANDLE__)             \
-  do {                                    \
-    (__HANDLE__)->Lock = HW_UNLOCKED;     \
-  } while (0)
-	
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __HW_H__ */
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+#endif /* __STM32L1xx_IT_H__ */
 
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

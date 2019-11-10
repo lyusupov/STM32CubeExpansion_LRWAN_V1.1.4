@@ -69,13 +69,18 @@ Maintainer: Miguel Luis and Gregory Cristian
 /* Exported types ------------------------------------------------------------*/
 
 typedef struct{
-  float pressure;    /* in mbar */  
-  float temperature; /* in °C   */
-  float humidity;    /* in %    */
-  int32_t latitude;
-  int32_t longitude ;
-  int16_t  altitudeGps;       /* in m */
-  int16_t altitudeBar ;       /* in m * 10 */
+  int   in1;/*GPIO Digital Input 0 or 1*/
+	
+	float temp1;//DS18B20
+	
+	float oil;  //oil float
+	
+	uint8_t PA1_mv;//PA1
+
+	
+	float temp_sht;
+	float hum_sht;
+
   /**more may be added*/
 } sensor_t;
 
@@ -91,6 +96,24 @@ typedef struct{
  * @retval None
  */
 void  BSP_sensor_Init( void  );
+
+void  BSP_sensor_DeInit( void  );
+
+void  BSP_powerLED_Init( void  );
+
+void  BSP_powerLED_DeInit( void  );
+
+void  BSP_oil_float_Init( void );
+
+void powerLED(void);
+
+/**
+ * @brief  sensor  read. 
+ *
+ * @note none
+ * @retval sensor_data
+ */
+void BSP_sensor_Read( sensor_t *sensor_data);
 
 /**
  * @brief  sensor  read. 
