@@ -48,6 +48,7 @@
 #include "hw.h"
 #include "timeServer.h"
 #include "LoRaMac.h"
+#include "LoRaMacTest.h"
 #include "lora.h"
 #include "lora-test.h"
 #include "tiny_sscanf.h"

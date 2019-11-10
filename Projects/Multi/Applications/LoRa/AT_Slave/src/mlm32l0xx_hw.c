@@ -608,7 +608,7 @@ static void HW_RCC_OscConfig(void)
   }
 
   /* Adjusts the Internal High Speed oscillator (HSI) calibration value.*/
-  #define RCC_HSICALIBRATION_DEFAULT     ((uint32_t)0x10U)   /* Default HSI calibration trimming value */
+//  #define RCC_HSICALIBRATION_DEFAULT     ((uint32_t)0x10U)   /* Default HSI calibration trimming value */
   LL_RCC_HSI_SetCalibTrimming(RCC_HSICALIBRATION_DEFAULT);
 
   /*-------------------------------- PLL Configuration -----------------------*/
