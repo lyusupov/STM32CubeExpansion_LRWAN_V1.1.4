@@ -24,6 +24,12 @@ INC = $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/inc \
 	$(BASE)/Drivers/CMSIS/Device/ST/STM32L0xx/Include \
 	$(BASE)/Drivers/BSP/B-L072Z-LRWAN1 \
 	$(BASE)/Drivers/BSP/Components/sx1276 \
+	$(BASE)/Drivers/BSP/Components/flash_eraseprogram \
+	$(BASE)/Drivers/BSP/Components/filter \
+	$(BASE)/Drivers/BSP/Components/gps \
+	$(BASE)/Drivers/BSP/Components/IIC \
+	$(BASE)/Drivers/BSP/Components/mpu9250 \
+	$(BASE)/Drivers/BSP/Components/usart \
 	$(BASE)/Drivers/BSP/MLM32L07X01 \
 
 SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l0xx.c \
@@ -84,7 +90,14 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/test_rf.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/tiny_sscanf.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/tiny_vsnprintf.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/Exti_wakeup.c \
 	 $(BASE)/Drivers/BSP/Components/sx1276/sx1276.c \
+	 $(BASE)/Drivers/BSP/Components/filter/filter.c \
+	 $(BASE)/Drivers/BSP/Components/flash_eraseprogram/flash_eraseprogram.c \
+	 $(BASE)/Drivers/BSP/Components/gps/gps.c \
+	 $(BASE)/Drivers/BSP/Components/IIC/IIC.c \
+	 $(BASE)/Drivers/BSP/Components/mpu9250/mpu9250.c \
+	 $(BASE)/Drivers/BSP/Components/usart/bsp_usart2.c \
 	 $(BASE)/Drivers/BSP/MLM32L07X01/mlm32l07x01.c \
 	 $(BASE)/Drivers/BSP/B-L072Z-LRWAN1/b-l072z-lrwan1.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/main.c \
