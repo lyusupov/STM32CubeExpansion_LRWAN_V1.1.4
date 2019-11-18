@@ -16,14 +16,14 @@
 #endif
 
 
-#define GPS_STANDBY_H()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_SET)		
-#define GPS_STANDBY_L()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET)
+#define GPS_STANDBY_H()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET)
+#define GPS_STANDBY_L()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET)
 
-#define GPS_RESET_ON()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET)		
-#define GPS_RESET_OFF()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET)
+#define GPS_RESET_ON()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET)
+#define GPS_RESET_OFF()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET)
 
-#define GPS_POWER_ON()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET)		
-#define GPS_POWER_OFF()  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET)
+#define GPS_POWER_ON()  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET)
+#define GPS_POWER_OFF()  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET)
 
 typedef unsigned char  INT8U; // 无符号8位整型变量 // 
 typedef signed char    INT8S; // 有符号8位整型变量 // 
@@ -88,6 +88,7 @@ extern  uint8_t   GPS_parse(char *buf);
 extern void  GPS_usart(uint8_t buffer);  
 extern  uint8_t GPS_INFO_update(void);
 extern _Bool GPS_Run(void);
+extern void Sony_GNSS_Start(void);
 extern void GPS_Stop(void); 
 extern void GPS_FirmwareUpdate(void);
 extern void GPS_DegreeToDMS(FP32 deg,int *d,int *m,FP32 *s)   ;

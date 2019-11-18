@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include "gps.h"  
+#include "vcom.h"
 #include "at.h"  
 
 #define SEMICOLON   ','    
@@ -31,6 +32,25 @@ _Bool GPS_Run(void)
 
     return isrunning;   
 }   
+
+void Sony_GNSS_Start(void)
+{
+PRINTF("Sony_GNSS_Start\r\n");
+#if 0
+  /* GGA + GSA + RMC */
+  swSer.write("@BSSL 0x25\r\n"); delay(250);
+#endif
+
+//  AT_PRINTF("Tick: %ld\r\n", HAL_GetTick());
+#if 1
+  /* GPS + GLONASS */
+  usart1_Send("@GNS 0x3\r\n");		HAL_Delay(200);
+  /* Enable 1PPS output */
+  usart1_Send("@GPPS 0x1\r\n");		HAL_Delay(200);
+#endif
+  /* hot start */
+  usart1_Send("@GSR\r\n");		HAL_Delay(200);
+}
    
 void GPS_Stop(void)   
 {   
@@ -847,24 +867,25 @@ uint8_t GPS_INFO_update(void)
 	/* 配置 PC.0 GPS_BOOT -PC.1 GPS_EN 为输出模式*/
     
    __GPIOB_CLK_ENABLE();
+   __GPIOA_CLK_ENABLE();
 
-    GPIO_InitStructure.Pin =   GPIO_PIN_3 ;
+    GPIO_InitStructure.Pin =   GPIO_PIN_8 ;
     GPIO_InitStructure.Mode  = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStructure.Pull  = GPIO_PULLUP;
     GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);     
 	
-	  GPIO_InitStructure.Pin =   GPIO_PIN_4 ;
+	  GPIO_InitStructure.Pin =   GPIO_PIN_2 ;
     GPIO_InitStructure.Mode  = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStructure.Pull  = GPIO_PULLUP;
     GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);  
 	  
-    GPIO_InitStructure.Pin =   GPIO_PIN_5 ;
+    GPIO_InitStructure.Pin =   GPIO_PIN_8 ;
     GPIO_InitStructure.Mode  = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStructure.Pull  = GPIO_PULLUP;
     GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);  
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
     
     GPS_Stop();  
 }
@@ -877,24 +898,25 @@ uint8_t GPS_INFO_update(void)
 	/* 配置  为输入模式*/
     
    __GPIOB_CLK_ENABLE();
+   __GPIOA_CLK_ENABLE();
 
-    GPIO_InitStructure.Pin =   GPIO_PIN_3 ; 
+    GPIO_InitStructure.Pin =   GPIO_PIN_8 ;
     GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStructure.Pull = GPIO_NOPULL;
 //    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);     
 	
-	  GPIO_InitStructure.Pin =   GPIO_PIN_4 ;
+	  GPIO_InitStructure.Pin =   GPIO_PIN_2 ;
     GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStructure.Pull = GPIO_NOPULL;
 //    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);  
 	  
-    GPIO_InitStructure.Pin =   GPIO_PIN_5 ;
+    GPIO_InitStructure.Pin =   GPIO_PIN_8 ;
     GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStructure.Pull = GPIO_NOPULL;
 //    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);  
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
  
 }
 

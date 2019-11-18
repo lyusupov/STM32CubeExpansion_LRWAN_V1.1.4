@@ -33,9 +33,9 @@ void usart1_Init(void)
       - Parity = ODD parity
       - BaudRate = 921600 baud
       - Hardware flow control disabled (RTS and CTS signals) */
-  uart1.Instance        = USART1;
+  uart1.Instance        = USART4;
   
-  uart1.Init.BaudRate   = 9600;
+  uart1.Init.BaudRate   = 115200;
   uart1.Init.WordLength = UART_WORDLENGTH_8B;
   uart1.Init.StopBits   = UART_STOPBITS_1;
   uart1.Init.Parity     = UART_PARITY_NONE;
@@ -47,8 +47,8 @@ void usart1_Init(void)
     /* Initialization Error */
     //Error_Handler(); 
   } 
-  HAL_NVIC_SetPriority(USART1_IRQn, 0, 1);
-  HAL_NVIC_EnableIRQ(USART1_IRQn);
+  HAL_NVIC_SetPriority(USART4_5_IRQn, 0, 1);
+  HAL_NVIC_EnableIRQ(USART4_5_IRQn);
 	__HAL_UART_ENABLE_IT(&uart1,UART_IT_RXNE);//??????
 }
 
@@ -59,38 +59,38 @@ void usart1_DeInit(void)
 #endif
 }
 
-//void uart2_Send( char *format, ... )
-//{
-//  va_list args;
-//  va_start(args, format);
-//  
-//  /*convert into string at buff[0] of length iw*/
-//  iw1= vsprintf(&buff[0], format, args);
-//  
-//  HAL_UART_Transmit(&uart2,(uint8_t *)&buff[0], iw1, 300);
-// // HAL_NVIC_SetPendingIRQ(USART2_IRQn);
-//  va_end(args);
-//}
+void usart1_Send( char *format, ... )
+{
+  va_list args;
+  va_start(args, format);
+
+  /*convert into string at buff[0] of length iw*/
+  iw1= vsprintf(&buff[0], format, args);
+
+  HAL_UART_Transmit(&uart1,(uint8_t *)&buff[0], iw1, 300);
+ // HAL_NVIC_SetPendingIRQ(USART2_IRQn);
+  va_end(args);
+}
 
 void usart1_IoInit(void)
 {
   GPIO_InitTypeDef  GPIO_InitStruct={0};
     /* Enable GPIO TX/RX clock */
-  __GPIOB_CLK_ENABLE();
+  __GPIOC_CLK_ENABLE();
     /* UART TX GPIO pin configuration  */
-  GPIO_InitStruct.Pin       = GPIO_PIN_6;
+  GPIO_InitStruct.Pin       = GPIO_PIN_10;
   GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull      = GPIO_PULLUP;
   GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF0_USART1;
+  GPIO_InitStruct.Alternate = GPIO_AF6_USART4;
 
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* UART RX GPIO pin configuration  */
-  GPIO_InitStruct.Pin = GPIO_PIN_7;
-  GPIO_InitStruct.Alternate = GPIO_AF0_USART1;
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Alternate = GPIO_AF6_USART4;
 
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 	
 }
 
@@ -99,16 +99,16 @@ void usart1_IoDeInit(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure={0};
   
- __GPIOB_CLK_ENABLE();
+ __GPIOC_CLK_ENABLE();
 
   GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStructure.Pull = GPIO_NOPULL;
   
-  GPIO_InitStructure.Pin =  GPIO_PIN_6 ;
-  HAL_GPIO_Init(  GPIOB, &GPIO_InitStructure );
+  GPIO_InitStructure.Pin =  GPIO_PIN_10 ;
+  HAL_GPIO_Init(  GPIOC, &GPIO_InitStructure );
   
-  GPIO_InitStructure.Pin = GPIO_PIN_7 ;
-  HAL_GPIO_Init(  GPIOB, &GPIO_InitStructure ); 
+  GPIO_InitStructure.Pin = GPIO_PIN_11 ;
+  HAL_GPIO_Init(  GPIOC, &GPIO_InitStructure );
 }
 
 
@@ -175,6 +175,7 @@ void usart1_IRQHandler(UART_HandleTypeDef *huart)
 	{
 		GPS_usart(rx);
 //   	PRINTF("RX :%c",rx);
+   	PRINTF("%c",rx);
 	}
 }
 

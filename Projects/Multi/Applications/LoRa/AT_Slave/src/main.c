@@ -321,6 +321,8 @@ int main( void )
   /* Configure the Lora Stack*/
   LORA_Init( &LoRaMainCallbacks, &LoRaParamInit);
   
+	Sony_GNSS_Start();
+
   while( 1 )
   {
 		/* Handle UART commands */
@@ -1370,7 +1372,7 @@ void CalibrateToZero(void)
 			yawoffset=0;
 }
 
-void USART1_IRQHandler(void)
+void USART4_5_IRQHandler(void)
 {
 	usart1_IRQHandler(&uart1);
 }

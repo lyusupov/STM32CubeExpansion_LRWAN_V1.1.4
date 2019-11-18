@@ -123,8 +123,8 @@ OBJ_FILES = $(foreach d, $(SRC_FILES), $(patsubst %.c,$(OBJ_DIR)/%.o,$(notdir $d
 INC_PARAMS=$(foreach d, $(INC), -I$d)
 LIB_FILES += -lc -lnosys -lm
 
-CFLAGS += $(INC_PARAMS) -DDEBUG -DUSE_BAND_921 -DUSE_MODEM_LORA -DUSE_$(BOARD) -D$(REGION) -DSTM32L072xx -DUSE_FULL_LL_DRIVER -mthumb -mfloat-abi=soft -mcpu=cortex-m0plus -Werror
-CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
+CFLAGS += $(INC_PARAMS) -DUSE_MODEM_LORA -DUSE_$(BOARD) -D$(REGION) -DSTM32L072xx -DUSE_HAL_DRIVER -mthumb -mfloat-abi=soft -mcpu=cortex-m0plus -Werror
+CFLAGS += -Os -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums 
 
 LDFLAGS += -mthumb -mabi=aapcs -T $(LINKER_SCRIPT)

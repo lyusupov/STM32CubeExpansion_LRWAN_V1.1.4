@@ -21,9 +21,9 @@
 #include "hw.h"
 #include "IIC.h"
 
-#define GPIO_PORT_IIC	 GPIOA		
-#define IIC_SCL_PIN		 GPIO_PIN_9		
-#define IIC_SDA_PIN		 GPIO_PIN_10
+#define GPIO_PORT_IIC	 GPIOB
+#define IIC_SCL_PIN		 GPIO_PIN_6
+#define IIC_SDA_PIN		 GPIO_PIN_7
 
 #define IIC_SCL_1  HAL_GPIO_WritePin(GPIO_PORT_IIC, IIC_SCL_PIN, GPIO_PIN_SET)		
 #define IIC_SCL_0  HAL_GPIO_WritePin(GPIO_PORT_IIC, IIC_SCL_PIN, GPIO_PIN_RESET)	
@@ -37,7 +37,7 @@ void IIC_GPIO_MODE_Config(void)
 {
 	static GPIO_InitTypeDef  GPIO_InitStruct;
 	
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
    
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
@@ -51,7 +51,7 @@ void SDA_IN(void)
 {
 	static GPIO_InitTypeDef  GPIO_InitStruct;
 	
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
    
   GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
@@ -65,7 +65,7 @@ void SDA_OUT(void)
 {
 	static GPIO_InitTypeDef  GPIO_InitStruct;
 	
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
    
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
