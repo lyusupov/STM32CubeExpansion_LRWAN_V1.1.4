@@ -130,7 +130,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 
    
 /* uncomment below line to never enter lowpower modes in main.c*/
-//#define LOW_POWER_DISABLE
+#define LOW_POWER_DISABLE
   
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

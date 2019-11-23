@@ -1,7 +1,6 @@
 BASE=../../../../../..
 ARM_TOOLCHAIN=/opt/gcc-arm-none-eabi/bin
 GCC_PREFIX=$(ARM_TOOLCHAIN)/arm-none-eabi-
-#BOARD=B_L072Z_LRWAN1
 BOARD=STM32L0XX_NUCLEO
 OBJ_DIR=./_build
 PROJ_NAME=AT_Slave
@@ -20,6 +19,8 @@ INC = $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/inc \
 	$(BASE)/Middlewares/Third_Party/Lora/Crypto \
 	$(BASE)/Middlewares/Third_Party/Lora/Mac \
 	$(BASE)/Middlewares/Third_Party/Lora/Mac/region \
+	$(BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
+	$(BASE)/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 	$(BASE)/Drivers/STM32L0xx_HAL_Driver/Inc \
 	$(BASE)/Drivers/CMSIS/Include \
 	$(BASE)/Drivers/CMSIS/Device/ST/STM32L0xx/Include \
@@ -31,7 +32,7 @@ INC = $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/inc \
 	$(BASE)/Drivers/BSP/Components/IIC \
 	$(BASE)/Drivers/BSP/Components/mpu9250 \
 	$(BASE)/Drivers/BSP/Components/usart \
-	$(BASE)/Drivers/BSP/MLM32L07X01 \
+	$(BASE)/Drivers/BSP/sx1276mb1las \
 
 SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l0xx.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal.c \
@@ -54,6 +55,8 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr_ex.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_flash_ex.c \
+	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd.c \
+	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pcd_ex.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_spi.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_lpuart.c \
 	 $(BASE)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_dma.c \
@@ -107,7 +110,16 @@ SRC_FILES =  $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/system_stm32l
 	 $(BASE)/Drivers/BSP/STM32L0xx_Nucleo/stm32l0xx_nucleo.c \
 	 $(BASE)/Drivers/BSP/sx1276mb1las/sx1276mb1las.c \
 	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/main.c \
-	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/lora.c
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/lora.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/usb_device.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/usbd_cdc_if.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/usbd_conf.c \
+	 $(BASE)/Projects/Multi/Applications/LoRa/AT_Slave/src/usbd_desc.c \
+	 $(BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
+	 $(BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
+	 $(BASE)/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
+	 $(BASE)/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+
 
 #	 $(BASE)/Drivers/BSP/B-L072Z-LRWAN1/b-l072z-lrwan1.c \
 #	 $(BASE)/Drivers/BSP/MLM32L07X01/mlm32l07x01.c \

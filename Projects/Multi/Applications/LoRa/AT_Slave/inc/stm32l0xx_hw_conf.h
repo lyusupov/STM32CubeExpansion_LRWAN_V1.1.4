@@ -215,7 +215,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define OIL_CONTROL_PIN           GPIO_PIN_0
 #define Oil_LEVEL_PORT            GPIOB
 #define Oil_LEVEL_PIN             GPIO_PIN_1
-#define ADC_Channel_Oil           ADC_CHANNEL_3
+#define ADC_Channel_Oil           ADC_CHANNEL_9
 #ifdef __cplusplus
 }
 #endif

@@ -49,7 +49,7 @@
 #include <stdarg.h>
 #include "radio.h"
 #include "sx1276.h"
-#include "mlm32l07x01.h"
+#include "sx1276mb1las.h"
 #include "at.h"
 #include "test_rf.h"
 #include "tiny_sscanf.h"

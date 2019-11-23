@@ -175,7 +175,6 @@ void usart1_IRQHandler(UART_HandleTypeDef *huart)
 	{
 		GPS_usart(rx);
 //   	PRINTF("RX :%c",rx);
-   	PRINTF("%c",rx);
 	}
 }
 

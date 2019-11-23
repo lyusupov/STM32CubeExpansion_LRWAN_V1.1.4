@@ -47,10 +47,13 @@
 #include "hw.h"
 #include "vcom.h"
 #include "bsp_usart2.h"
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
 /* Uart Handle */
 static UART_HandleTypeDef UartHandle;
 
@@ -61,6 +64,7 @@ static void (*TxCpltCallback) (void);
 
 static void (*RxCpltCallback) (uint8_t *rxChar);
 /* Private function prototypes -----------------------------------------------*/
+
 /* Functions Definition ------------------------------------------------------*/
 void vcom_Init(  void (*TxCb)(void) )
 {
@@ -89,11 +93,15 @@ void vcom_Init(  void (*TxCb)(void) )
     /* Initialization Error */
     Error_Handler(); 
   }
+
+//  MX_USB_DEVICE_Init();
 }
 
 void vcom_Trace(  uint8_t *p_data, uint16_t size )
 {
     HAL_UART_Transmit_DMA(&UartHandle,p_data, size);
+
+//    CDC_Transmit_FS(p_data, size);
 }
 
 
@@ -163,8 +171,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
   USARTX_CLK_ENABLE();
    /* select USARTX clock source*/
   RCC_PeriphCLKInitTypeDef  PeriphClkInit={0};
-  PeriphClkInit.PeriphClockSelection=RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.PeriphClockSelection=RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_USB;
   PeriphClkInit.Lpuart1ClockSelection=RCC_LPUART1CLKSOURCE_HSI;
+  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
   HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
   /* Enable DMA clock */
@@ -263,4 +272,6 @@ void vcom_IoDeInit(void)
   GPIO_InitStructure.Pin =  USARTX_RX_PIN ;
   HAL_GPIO_Init(  USARTX_RX_GPIO_PORT, &GPIO_InitStructure ); 
 }
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

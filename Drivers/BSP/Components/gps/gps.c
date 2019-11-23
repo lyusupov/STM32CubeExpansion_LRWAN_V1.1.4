@@ -35,7 +35,20 @@ _Bool GPS_Run(void)
 
 void Sony_GNSS_Start(void)
 {
-PRINTF("Sony_GNSS_Start\r\n");
+// PRINTF("Sony_GNSS_Start\r\n");
+
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+    __GPIOC_CLK_ENABLE();
+
+    GPIO_InitStructure.Pin   = GPIO_PIN_6 ;
+    GPIO_InitStructure.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStructure.Pull  = GPIO_PULLUP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    HAL_GPIO_Init(GPIOC , &GPIO_InitStructure);
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+
 #if 0
   /* GGA + GSA + RMC */
   swSer.write("@BSSL 0x25\r\n"); delay(250);
