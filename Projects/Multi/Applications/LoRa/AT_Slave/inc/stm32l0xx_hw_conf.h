@@ -132,36 +132,36 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RTC_Alarm_IRQn              RTC_IRQn
 
 /* --------------------------- USART HW definition -------------------------------*/
-#define USARTX                           LPUART1
-#define USARTX_CLK_ENABLE()              __LPUART1_CLK_ENABLE()
-#define USARTX_RX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE()
-#define USARTX_TX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE() 
+#define USARTX                           USART1
+#define USARTX_CLK_ENABLE()              __HAL_RCC_USART1_CLK_ENABLE()
+#define USARTX_RX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
+#define USARTX_TX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOA_CLK_ENABLE()
 #define DMAX_CLK_ENABLE()                __HAL_RCC_DMA1_CLK_ENABLE()
 
-#define USARTX_FORCE_RESET()             __LPUART1_FORCE_RESET()
-#define USARTX_RELEASE_RESET()           __LPUART1_RELEASE_RESET()
+#define USARTX_FORCE_RESET()             __USART1_FORCE_RESET()
+#define USARTX_RELEASE_RESET()           __USART1_RELEASE_RESET()
 
 
 /* Definition for USARTx Pins */
-#define USARTX_TX_PIN                  GPIO_PIN_14
+#define USARTX_TX_PIN                  GPIO_PIN_9
 #define USARTX_TX_GPIO_PORT            GPIOA  
-#define USARTX_TX_AF                   GPIO_AF6_LPUART1
-#define USARTX_RX_PIN                  GPIO_PIN_13
+#define USARTX_TX_AF                   GPIO_AF4_USART1
+#define USARTX_RX_PIN                  GPIO_PIN_10
 #define USARTX_RX_GPIO_PORT            GPIOA 
-#define USARTX_RX_AF                   GPIO_AF6_LPUART1
+#define USARTX_RX_AF                   GPIO_AF4_USART1
 
 /* Definition for USARTx's NVIC */
-#define USARTX_IRQn                      RNG_LPUART1_IRQn
-#define USARTX_IRQHandler                RNG_LPUART1_IRQHandler
+#define USARTX_IRQn                      USART1_IRQn
+#define USARTX_IRQHandler                USART1_IRQHandler
 /* Definition for USARTx's DMA */
-#define USARTX_TX_DMA_CHANNEL             DMA1_Channel7
+#define USARTX_TX_DMA_CHANNEL             DMA1_Channel2
 
 /* Definition for USARTx's DMA Request */
-#define USARTX_TX_DMA_REQUEST             DMA_REQUEST_5
+#define USARTX_TX_DMA_REQUEST             DMA_REQUEST_3
 
 /* Definition for USARTx's NVIC */
-#define USARTX_DMA_TX_IRQn                DMA1_Channel4_5_6_7_IRQn
-#define USARTX_DMA_TX_IRQHandler          DMA1_Channel4_5_6_7_IRQHandler
+#define USARTX_DMA_TX_IRQn                DMA1_Channel2_3_IRQn
+#define USARTX_DMA_TX_IRQHandler          DMA1_Channel2_3_IRQHandler
 
 #define USARTX_Priority 1
 #define USARTX_DMA_Priority 1

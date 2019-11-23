@@ -64,6 +64,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "vcom.h"
 
 extern int exti_flag;
+extern PCD_HandleTypeDef hpcd_USB_FS;
 /** @addtogroup STM32L1xx_HAL_Examples
   * @{
   */
@@ -264,6 +265,20 @@ void EXTI4_15_IRQHandler( void )
   }
 
   HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_15 );
+}
+
+/**
+  * @brief This function handles USB event interrupt / USB wake-up interrupt through EXTI line 18.
+  */
+void USB_IRQHandler(void)
+{
+  /* USER CODE BEGIN USB_IRQn 0 */
+
+  /* USER CODE END USB_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_FS);
+  /* USER CODE BEGIN USB_IRQn 1 */
+
+  /* USER CODE END USB_IRQn 1 */
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

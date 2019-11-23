@@ -94,7 +94,7 @@ void vcom_Init(  void (*TxCb)(void) )
     Error_Handler(); 
   }
 
-//  MX_USB_DEVICE_Init();
+  MX_USB_DEVICE_Init();
 }
 
 void vcom_Trace(  uint8_t *p_data, uint16_t size )
@@ -171,8 +171,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
   USARTX_CLK_ENABLE();
    /* select USARTX clock source*/
   RCC_PeriphCLKInitTypeDef  PeriphClkInit={0};
-  PeriphClkInit.PeriphClockSelection=RCC_PERIPHCLK_LPUART1|RCC_PERIPHCLK_USB;
-  PeriphClkInit.Lpuart1ClockSelection=RCC_LPUART1CLKSOURCE_HSI;
+  PeriphClkInit.PeriphClockSelection=RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_USB;
+  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
   HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
